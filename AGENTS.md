@@ -13,6 +13,14 @@ This repository is Anant's personal planning source. Keep it calm, concrete, and
 7. Convert externally stated time zones to Asia/Kolkata and retain the original time zone in `Notes` when deadline risk matters.
 8. Update the top `Updated` date and `Current week` only when appropriate.
 9. Run `npm test` after every data or application change.
+10. When Anant says “add these to my manager and publish,” accept unstructured prose, screenshots, or pasted emails; update the source, test, commit, push `main`, and verify the Pages deployment. Do not ask him to fill Markdown tables.
+
+## Golden Jubilee
+
+- Golden Jubilee is a dedicated responsibility area, separate from Travel.
+- Anant is the overall coordinator, not merely a task lead.
+- Turn coordinator updates into concrete decisions, owners, dependencies, deadlines, and follow-ups. Use the `Golden Jubilee` area label.
+- Treat “GJ” or “DJ” as Golden Jubilee when the context clearly refers to this responsibility.
 
 ## Applications and rejections
 

@@ -1,6 +1,6 @@
 # Anant's Week Manager
 
-This file is the durable source of truth. Tell Codex what changed in plain language; Codex should update this file, while quick check-offs made on the website stay on that browser until exported.
+This file is the durable source of truth. Tell Codex what changed in plain language; Codex should update and publish this file, while quick check-offs made on the website stay on that browser until exported. Golden Jubilee is a distinct area where Anant is the overall coordinator; it must not be grouped with Travel.
 
 - Updated: 2026-08-17
 - Timezone: Asia/Kolkata
@@ -23,15 +23,15 @@ This file is the durable source of truth. Tell Codex what changed in plain langu
 | resume-external | Finish the ML research resume for external applications | Career | 2026-08-19T18:00:00+05:30 | P0 | Open | 2h | Make one strong base resume, then tailor only the top third |  | Unblocks the weekly application target |
 | et-deck-v1 | Complete ET AI finale deck version 1 | Hackathon | 2026-08-20T21:00:00+05:30 | P0 | Open | 3h | Build a 7–8 minute story with problem, solution, evidence, demo, and close |  | Keep backup PDF and offline copy |
 | goa-apply | Apply to Hacker House Goa 2026 | Hackathon | 2026-08-20T21:30:00+05:30 | P1 | Open | 45m | Submit the Devfolio application and capture any shortlisting task | https://hacker-house-goa-2026.devfolio.co/overview?ref=f66c3dc86d | Personal deadline; official exact close time is not published on the page |
-| gj-budget | Draft Golden Jubilee budget | Leadership | 2026-08-20T22:00:00+05:30 | P1 | Open | 1h | List line items, owners, estimates, and approval gaps |  | Golden Jubilee lead task |
+| gj-budget | Draft Golden Jubilee budget | Golden Jubilee | 2026-08-20T22:00:00+05:30 | P1 | Open | 1h | List line items, owners, estimates, and approval gaps |  | Overall coordinator task |
 | pocket-fm-prep | Focused preparation for Pocket FM | Career | 2026-08-21T18:00:00+05:30 | P1 | Open | 2h | Record the stage/date, then prepare only for that format |  | Interview details are still missing |
 | cs6103 | Review the next CS6103 deliverable | Academics | 2026-08-21T20:00:00+05:30 | P2 | Open | 45m | Capture the exact assignment, date, and next step |  | Placeholder deadline for clarification, not the course deadline |
-| gj-atm | Close the Golden Jubilee ATM action | Leadership | 2026-08-21T21:00:00+05:30 | P1 | Open | 45m | Record the required decision and contact the owner |  | Exact scope needs to be added |
+| gj-atm | Close the Golden Jubilee ATM action | Golden Jubilee | 2026-08-21T21:00:00+05:30 | P1 | Open | 45m | Record the required decision and contact the owner |  | Overall coordinator; exact scope needs to be added |
 | ml-video | Watch and note the ML video | Academics | 2026-08-21T22:00:00+05:30 | P2 | Open | 45m | Capture three useful points and one follow-up |  | From the original task list |
 | akuna-challenge | Complete and submit the Akuna trading challenge | Career | 2026-08-22T20:00:00+05:30 | P0 | Open | 5–8h | Protect one uninterrupted block and submit well before the hard cutoff |  | Self-imposed finish; hard cutoff is 24 Aug 10:29 AM IST |
 | et-demo-check | Make the ET AI demo failure-safe | Hackathon | 2026-08-22T21:00:00+05:30 | P0 | Open | 2h | Test offline path, backup recording, adapters, and clean laptop setup |  | Bring any additional demonstration materials |
 | stochastic-catchup | Catch up on stochastic and probability material | Academics | 2026-08-22T22:00:00+05:30 | P1 | Open | 2h | Review lecture notes and make a one-page quiz sheet |  | Preparation for the Monday quiz |
-| gj-truth-doc | Finish Golden Jubilee truth document and follow-up | Leadership | 2026-08-22T22:30:00+05:30 | P1 | Open | 1h | Consolidate facts, open decisions, owners, and follow-ups |  | Golden Jubilee lead task |
+| gj-truth-doc | Finish Golden Jubilee truth document and follow-up | Golden Jubilee | 2026-08-22T22:30:00+05:30 | P1 | Open | 1h | Consolidate facts, open decisions, owners, and follow-ups |  | Overall coordinator task |
 | dl-video | Watch and note the DL video | Academics | 2026-08-22T23:00:00+05:30 | P2 | Open | 45m | Capture three useful points and one follow-up |  | From the original task list |
 | applications-week | Submit at least 25 external applications this week | Career | 2026-08-23T20:00:00+05:30 | P0 | Open | Daily | Log every submission; use 5 per day as the operating minimum |  | Stretch goal is 50; quality-fit ML research roles first |
 | rl-slp-prep | Finish Monday RL SLP paper notes and presentation | Academics | 2026-08-23T20:30:00+05:30 | P0 | Open | 4h total | Finalize claim, evidence, limitations, slides, and likely questions |  | Presentation recurs every Monday |
@@ -131,3 +131,4 @@ This file is the durable source of truth. Tell Codex what changed in plain langu
 3. Website check-offs are intentionally local and fast. Export or copy the Codex update when you want them written back here.
 4. Akuna challenge content is confidential. Track only preparation, time, and submission status.
 5. When a rejection arrives, record the stage, evidence, follow-up/recovery action, and earliest sensible reapplication date—never just the word “rejected.”
+6. Golden Jubilee is its own area. Anant is the overall coordinator; never combine its work with Travel.

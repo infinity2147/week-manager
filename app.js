@@ -15,7 +15,8 @@ const VIEW_TITLES = {
   career: "Applications",
   hackathons: "Hackathons",
   academics: "Academics",
-  life: "Travel & Golden Jubilee",
+  travel: "Travel",
+  golden: "Golden Jubilee",
   inbox: "Inbox & sync",
   more: "More",
 };
@@ -564,14 +565,27 @@ function renderAcademics() {
   </section>`;
 }
 
-function renderLife() {
+function renderTravel() {
   const travel = openTasks().filter((task) => task.area === "Travel");
-  const leadership = openTasks().filter((task) => task.area === "Leadership");
+  const events = section("events").filter((event) => event.area === "Travel");
+  const waiting = section("waiting_for").filter((item) => item.area === "Travel");
   return `<section class="view">
-    <div class="page-intro"><div><span class="eyebrow">Logistics + leadership</span><h2>Travel is a chain, not one checkbox.</h2><p>Getting to the finale, staying if needed, coming home safely, and Golden Jubilee responsibilities each have their own next action.</p></div></div>
+    <div class="page-intro"><div><span class="eyebrow">Travel only</span><h2>Every trip is a short chain of decisions.</h2><p>Transport, accommodation, packing, and the return journey live here—separate from your coordinator work.</p></div></div>
     <div class="content-grid">
-      <article class="card card-pad span-7"><div class="section-heading"><div><span class="eyebrow">Hyderabad → home</span><h3>Travel chain</h3></div><span class="count-badge">${travel.length}</span></div><div class="task-list">${travel.map((task) => taskRow(task, { showArea: false })).join("")}</div></article>
-      <article class="card card-pad span-5"><div class="section-heading"><div><span class="eyebrow">Golden Jubilee lead</span><h3>Budget, ATM, truth doc</h3></div><span class="count-badge">${leadership.length}</span></div><div class="task-list">${leadership.map((task) => taskRow(task, { showArea: false })).join("")}</div></article>
+      <article class="card card-pad span-8"><div class="section-heading"><div><span class="eyebrow">Open logistics</span><h3>Travel chain</h3></div><span class="count-badge">${travel.length}</span></div><div class="task-list">${travel.length ? travel.map((task) => taskRow(task, { showArea: false })).join("") : `<div class="empty-state"><strong>No open travel actions.</strong><p>Add the next trip when its dates are known.</p></div>`}</div></article>
+      <article class="card card-pad span-4"><div class="section-heading"><div><span class="eyebrow">Known itinerary</span><h3>Travel events</h3></div></div><div class="timeline-list">${events.length ? events.map((event) => `<div class="timeline-item"><span class="timeline-mark"></span><div class="timeline-copy"><strong>${escapeHTML(event.event)}</strong><p>${escapeHTML(formatDate(event.start, { weekday: true }))} · ${escapeHTML(event.location || "Location needed")}</p></div></div>`).join("") : `<div class="empty-state"><strong>No journey recorded.</strong><p>Tell Codex when a trip is confirmed.</p></div>`}</div></article>
+      <article class="card card-pad span-12"><div class="section-heading"><div><span class="eyebrow">Before booking</span><h3>Missing travel details</h3></div></div><div class="strip-grid">${waiting.length ? waiting.map((item) => `<div class="mini-card"><span class="area-pill">Needed</span><h3>${escapeHTML(item.missing_information)}</h3><p>${escapeHTML(item.why_it_matters)}</p></div>`).join("") : `<div class="empty-state"><strong>Nothing is blocking a booking.</strong></div>`}</div></article>
+    </div>
+  </section>`;
+}
+
+function renderGoldenJubilee() {
+  const tasks = openTasks().filter((task) => ["Golden Jubilee", "Leadership"].includes(task.area));
+  return `<section class="view">
+    <div class="page-intro"><div><span class="eyebrow">Overall coordinator</span><h2>Golden Jubilee has its own command board.</h2><p>Decisions, owners, follow-ups, and deadlines stay here. Travel is tracked separately.</p></div></div>
+    <div class="content-grid">
+      <article class="card card-pad span-8"><div class="section-heading"><div><span class="eyebrow">Coordinator queue</span><h3>Open Golden Jubilee actions</h3></div><span class="count-badge">${tasks.length}</span></div><div class="task-list">${tasks.length ? tasks.map((task) => taskRow(task, { showArea: false })).join("") : `<div class="empty-state"><strong>The coordinator queue is clear.</strong><p>Tell Codex the next decision, owner, or deadline when it arrives.</p></div>`}</div></article>
+      <article class="card card-pad span-4"><div class="section-heading"><div><span class="eyebrow">No manual entry</span><h3>Just tell Codex</h3></div></div><p class="quiet-note">Open this folder in Codex and speak naturally. For example:</p><div class="intent-example">Golden Jubilee: vendor quotes are due Friday. Ask Riya for the stage estimate by Wednesday, then publish.</div><p class="quiet-note">Codex will split that into concrete tasks, update MANAGER.md, test it, and publish the site.</p></article>
     </div>
   </section>`;
 }
@@ -589,16 +603,21 @@ function renderInbox() {
   const waiting = section("waiting_for");
   const localItems = [...state.localItems, ...state.inbox.map((item) => ({ ...item, kind: "Note" }))];
   return `<section class="view">
-    <div class="page-intro"><div><span class="eyebrow">Say it before you organize it</span><h2>Capture first. Codex can structure it later.</h2><p>Quick entries stay on this device. Copy or download an update when you want Codex to reconcile them into MANAGER.md.</p></div></div>
+    <div class="page-intro"><div><span class="eyebrow">No manual tables</span><h2>Tell Codex in normal sentences.</h2><p>Open this project folder in Codex, paste a message or email, and ask it to update and publish. The website inbox is only a fallback when Codex is not open.</p></div></div>
     <div class="content-grid">
+      <article class="card card-pad span-12">
+        <div class="section-heading"><div><span class="eyebrow">Default workflow</span><h3>One message is enough</h3></div><button class="button button-quiet button-small" type="button" data-copy-template>Copy starter</button></div>
+        <div class="intent-example">Add these to my manager and publish: [paste anything here—tasks, an email, application update, rejection, hackathon, course date, travel plan, or Golden Jubilee work].</div>
+        <p class="quiet-note">Dates and structure are optional. Codex extracts what is known, records missing facts without inventing them, runs the checks, pushes to GitHub, and waits for Pages to update.</p>
+      </article>
       <article class="card card-pad capture-card span-7">
-        <div class="section-heading"><div><span class="eyebrow">Fastest capture</span><h3>What just changed?</h3></div></div>
+        <div class="section-heading"><div><span class="eyebrow">Website fallback</span><h3>What just changed?</h3></div></div>
         <form class="capture-inline" id="inbox-form"><input name="capture" maxlength="220" required placeholder="e.g. VNG presentation is 3 September at 2 PM" aria-label="New information" /><button class="button button-primary" type="submit">Save note</button></form>
         <p class="quiet-note">No form-filling required. A sentence is enough.</p>
       </article>
       <article class="card card-pad span-5">
         <div class="section-heading"><div><span class="eyebrow">Codex handoff</span><h3>${localChangeCount()} local changes</h3></div></div>
-        <p class="quiet-note">GitHub Pages cannot safely hold a Codex or OpenAI secret in the browser. This handoff keeps the site private and simple.</p>
+        <p class="quiet-note">GitHub Pages cannot safely hold a Codex or OpenAI secret in the browser. This handoff keeps credentials out of the public site.</p>
         <div class="sync-actions"><button class="button button-primary button-small" type="button" data-copy-codex>Copy for Codex</button><button class="button button-quiet button-small" type="button" data-download-update>Download update.md</button><a class="button button-quiet button-small" href="./MANAGER.md" target="_blank">Open source</a></div>
       </article>
 
@@ -637,7 +656,8 @@ function renderMore() {
   const links = [
     ["◇", "Hackathons", "Finales, applications, and logistics", "hackathons"],
     ["□", "Academics", "RL SLP, stochastic quiz, and courses", "academics"],
-    ["⌁", "Travel & GJ", "Hyderabad, flight home, and lead work", "life"],
+    ["⌁", "Travel", "Flights, accommodation, packing, and journeys", "travel"],
+    ["✦", "Golden Jubilee", "Your overall-coordinator decisions and follow-ups", "golden"],
     ["＋", "Inbox & sync", "Capture, Codex handoff, and reminders", "inbox"],
   ];
   return `<section class="view"><div class="page-intro"><div><span class="eyebrow">Everything else</span><h2>Open only the area you need.</h2></div></div><div class="more-grid">${links.map(([icon, title, description, view]) => `<button class="more-card" type="button" data-nav="${view}"><span>${icon}</span><strong>${title}</strong><p>${description}</p></button>`).join("")}</div></section>`;
@@ -650,7 +670,7 @@ function renderView() {
   document.title = `${VIEW_TITLES[validView]} · Anant's Week Manager`;
   document.querySelectorAll("[data-nav]").forEach((button) => button.classList.toggle("is-active", button.dataset.nav === validView));
   document.querySelectorAll(".mobile-nav-item").forEach((button) => {
-    const isMoreArea = ["hackathons", "academics", "life", "inbox", "more"].includes(validView);
+    const isMoreArea = ["hackathons", "academics", "travel", "golden", "inbox", "more"].includes(validView);
     button.classList.toggle("is-active", button.dataset.nav === validView || (button.dataset.nav === "more" && isMoreArea));
   });
 
@@ -661,7 +681,8 @@ function renderView() {
     career: renderCareer,
     hackathons: renderHackathons,
     academics: renderAcademics,
-    life: renderLife,
+    travel: renderTravel,
+    golden: renderGoldenJubilee,
     inbox: renderInbox,
     more: renderMore,
   };
@@ -880,6 +901,12 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
+  if (event.target.closest("[data-copy-template]")) {
+    await copyText("Add these to my manager and publish: ");
+    showToast("Starter copied. Paste it into Codex and add your update.");
+    return;
+  }
+
   if (event.target.closest("[data-download-update]")) {
     downloadFile(codexUpdateMarkdown(), `week-manager-update-${localISODate(new Date(), TIMEZONE)}.md`, "text/markdown;charset=utf-8");
     showToast("Codex update downloaded.");
@@ -1010,6 +1037,7 @@ async function init() {
     const response = await fetch("./MANAGER.md", { cache: "no-store" });
     if (!response.ok) throw new Error(`MANAGER.md returned ${response.status}`);
     manager = parseManagerMarkdown(await response.text());
+    if (state.view === "life") state.view = "travel";
     const requestedView = new URLSearchParams(window.location.search).get("view");
     if (requestedView && VIEW_TITLES[requestedView]) state.view = requestedView;
     const currentWeek = manager.metadata.current_week?.split(" to ") || weekDates();

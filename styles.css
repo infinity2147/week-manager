@@ -1120,6 +1120,19 @@ a {
   background: var(--surface-soft);
 }
 
+.intent-example {
+  margin-top: 12px;
+  padding: 13px 14px;
+  border: 1px solid #c7d9d0;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
 .capture-inline {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1610,6 +1623,22 @@ a {
     right: 16px;
     bottom: calc(83px + env(safe-area-inset-bottom));
     left: 16px;
+  }
+}
+
+@media (max-height: 700px) and (min-width: 761px) {
+  .desktop-nav {
+    gap: 2px;
+    margin-top: 18px;
+  }
+
+  .nav-item {
+    min-height: 40px;
+    padding-block: 6px;
+  }
+
+  .sidebar-note {
+    display: none;
   }
 }
 

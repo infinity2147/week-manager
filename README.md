@@ -16,9 +16,9 @@ Open <http://localhost:8080>. Opening `index.html` directly will not work becaus
 
 1. Open **Today** and work only from the first three items.
 2. Tap `+` as you solve DSA questions; log each submitted application.
-3. Use **Add something** or the Inbox sentence box when new information arrives.
-4. In **Inbox & sync**, choose **Copy for Codex** and paste it into Codex in this folder when you want the browser changes written back to `MANAGER.md`.
-5. You can also simply open this folder in Codex and say, “These are my new things…” The project instructions tell Codex how to reconcile them.
+3. For any new information, open this folder in Codex and say: `Add these to my manager and publish: ...` Then write naturally or paste the original email/message. No table or special format is required.
+4. If Codex is not open, use the website Inbox as a temporary scratchpad. Later choose **Copy for Codex** and paste the generated update into Codex.
+5. Travel and Golden Jubilee have separate views. Golden Jubilee is Anant's overall-coordinator board.
 
 ## Install it on your desktop
 
