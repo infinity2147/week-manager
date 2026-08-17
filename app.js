@@ -10,6 +10,7 @@ const TIMEZONE = "Asia/Kolkata";
 const STATUS_OPTIONS = ["Interested", "Applied", "Challenge", "Interview", "Offer", "Rejected", "Withdrawn"];
 const VIEW_TITLES = {
   today: "Today",
+  now: "Now",
   week: "This week",
   completed: "Completed",
   prep: "Prep",
@@ -23,10 +24,12 @@ const VIEW_TITLES = {
 };
 
 const DEFAULT_STATE = {
-  schema: 2,
+  schema: 3,
   view: "today",
   completed: {},
   completedAt: {},
+  scheduleOverrides: { tasks: {}, events: {} },
+  dayPlans: {},
   applicationStatuses: {},
   dsa: {},
   localItems: [],
@@ -39,6 +42,7 @@ let state = loadState();
 let applicationFilter = "All";
 let installPrompt = null;
 let toastTimer = null;
+let editingSchedule = null;
 
 const viewRoot = document.querySelector("#view-root");
 const viewTitle = document.querySelector("#view-title");
@@ -53,6 +57,18 @@ const quickDetail = document.querySelector("#quick-detail");
 const installDialog = document.querySelector("#install-dialog");
 const installButton = document.querySelector("#install-button");
 const importInput = document.querySelector("#import-input");
+const scheduleDialog = document.querySelector("#schedule-dialog");
+const scheduleForm = document.querySelector("#schedule-form");
+const scheduleName = document.querySelector("#schedule-name");
+const taskScheduleFields = document.querySelector("#task-schedule-fields");
+const eventScheduleFields = document.querySelector("#event-schedule-fields");
+const taskDueDate = document.querySelector("#task-due-date");
+const taskDueTime = document.querySelector("#task-due-time");
+const eventStartDate = document.querySelector("#event-start-date");
+const eventStartTime = document.querySelector("#event-start-time");
+const eventEndDate = document.querySelector("#event-end-date");
+const eventEndTime = document.querySelector("#event-end-time");
+const resetScheduleButton = document.querySelector("#reset-schedule-button");
 
 function loadState() {
   try {
@@ -69,6 +85,11 @@ function loadState() {
       schema: DEFAULT_STATE.schema,
       completed: { ...DEFAULT_STATE.completed, ...completed },
       completedAt: { ...DEFAULT_STATE.completedAt, ...(saved?.completedAt || {}) },
+      scheduleOverrides: {
+        tasks: { ...(saved?.scheduleOverrides?.tasks || {}) },
+        events: { ...(saved?.scheduleOverrides?.events || {}) },
+      },
+      dayPlans: saved?.dayPlans && typeof saved.dayPlans === "object" ? saved.dayPlans : {},
       applicationStatuses: { ...DEFAULT_STATE.applicationStatuses, ...(saved?.applicationStatuses || {}) },
       dsa: { ...DEFAULT_STATE.dsa, ...(saved?.dsa || {}) },
       localItems: Array.isArray(saved?.localItems) ? saved.localItems : [],
@@ -197,7 +218,7 @@ function taskStatusChanges() {
     && Boolean(state.completed[task.id]) !== sourceTaskDone(task));
 }
 
-function allTasks() {
+function sourceTasks() {
   const localTasks = state.localItems
     .filter((item) => item.kind !== "Note")
     .map((item) => ({
@@ -216,6 +237,76 @@ function allTasks() {
   return [...section("tasks"), ...localTasks];
 }
 
+function allTasks() {
+  return sourceTasks().map((task) => {
+    const override = state.scheduleOverrides.tasks[task.id];
+    return override ? { ...task, ...override, schedule_local: true } : task;
+  });
+}
+
+function allEvents() {
+  return section("events").map((event) => {
+    const override = state.scheduleOverrides.events[event.id];
+    return override ? { ...event, ...override, schedule_local: true } : event;
+  });
+}
+
+function scheduleParts(value = "") {
+  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}))?/);
+  return { date: match?.[1] || "", time: match?.[2] || "" };
+}
+
+function composeSchedule(date, time) {
+  return time ? `${date}T${time}:00+05:30` : date;
+}
+
+function hasScheduleOverride(kind, itemId) {
+  return Object.prototype.hasOwnProperty.call(state.scheduleOverrides[kind], itemId);
+}
+
+function scheduleOverrideCount() {
+  return Object.keys(state.scheduleOverrides.tasks).length + Object.keys(state.scheduleOverrides.events).length;
+}
+
+function eventEditButton(eventId, label = "Edit date") {
+  return `<button class="button button-quiet button-small schedule-inline" type="button" data-edit-event="${id(eventId)}">✎ ${escapeHTML(label)}</button>`;
+}
+
+function openScheduleEditor(kind, itemId) {
+  const isTask = kind === "tasks";
+  const item = (isTask ? allTasks() : allEvents()).find((entry) => entry.id === itemId);
+  if (!item) return;
+
+  editingSchedule = { kind, itemId };
+  document.querySelector("#schedule-dialog-title").textContent = isTask ? "Edit task deadline" : "Edit event schedule";
+  scheduleName.textContent = isTask ? item.task : item.event;
+  taskScheduleFields.hidden = !isTask;
+  eventScheduleFields.hidden = isTask;
+  taskDueDate.disabled = !isTask;
+  taskDueTime.disabled = !isTask;
+  eventStartDate.disabled = isTask;
+  eventStartTime.disabled = isTask;
+  eventEndDate.disabled = isTask;
+  eventEndTime.disabled = isTask;
+
+  if (isTask) {
+    const due = scheduleParts(item.due);
+    taskDueDate.value = due.date;
+    taskDueTime.value = due.time;
+  } else {
+    const start = scheduleParts(item.start);
+    const end = scheduleParts(item.end);
+    eventStartDate.value = start.date;
+    eventStartTime.value = start.time;
+    eventEndDate.value = end.date || start.date;
+    eventEndTime.value = end.time;
+  }
+
+  resetScheduleButton.hidden = !hasScheduleOverride(kind, itemId);
+  scheduleDialog.showModal();
+  requestAnimationFrame(() => (isTask ? taskDueDate : eventStartDate).focus());
+}
+
 function taskScore(task) {
   const priority = { P0: 0, P1: 25, P2: 50 }[task.priority] ?? 75;
   const difference = daysFromToday(task.due);
@@ -225,6 +316,36 @@ function taskScore(task) {
 
 function openTasks(tasks = allTasks()) {
   return tasks.filter((task) => !isDone(task)).sort((a, b) => taskScore(a) - taskScore(b));
+}
+
+function todayKey() {
+  return localISODate(new Date(), TIMEZONE);
+}
+
+function currentDayPlanIds() {
+  const stored = state.dayPlans[todayKey()];
+  if (!Array.isArray(stored)) return [];
+  const openIds = new Set(openTasks().map((task) => task.id));
+  return [...new Set(stored)].filter((taskId) => openIds.has(taskId));
+}
+
+function plannedTasksToday() {
+  const tasksById = new Map(openTasks().map((task) => [task.id, task]));
+  return currentDayPlanIds().map((taskId) => tasksById.get(taskId)).filter(Boolean);
+}
+
+function todayFocusTasks() {
+  const tasks = openTasks();
+  const planned = plannedTasksToday();
+  const plannedIds = new Set(planned.map((task) => task.id));
+  return [...planned, ...tasks.filter((task) => !plannedIds.has(task.id))].slice(0, 3);
+}
+
+function setTodayPlan(taskIds) {
+  const openIds = new Set(openTasks().map((task) => task.id));
+  const nextPlan = [...new Set(taskIds)].filter((taskId) => openIds.has(taskId)).slice(0, 8);
+  if (nextPlan.length) state.dayPlans[todayKey()] = nextPlan;
+  else delete state.dayPlans[todayKey()];
 }
 
 function taskRow(task, { showArea = true, completionView = false } = {}) {
@@ -246,12 +367,13 @@ function taskRow(task, { showArea = true, completionView = false } = {}) {
           ${showArea ? `<span class="area-pill">${escapeHTML(task.area)}</span>` : ""}
           <span class="priority-pill priority-${escapeHTML((task.priority || "P2").toLowerCase())}">${escapeHTML(task.priority || "P2")}</span>
           ${task.estimate ? `<span class="area-pill">${escapeHTML(task.estimate)}</span>` : ""}
+          ${task.schedule_local ? `<span class="local-edit-note">Date edited here</span>` : ""}
         </div>
       </div>
-      <div class="task-side">
-        <strong>${escapeHTML(completionView ? "Completed" : due.label)}</strong>
+      <button class="task-side schedule-button" type="button" data-edit-task="${id(task.id)}" aria-label="Edit deadline for ${escapeHTML(task.task)}">
+        <strong>${escapeHTML(completionView ? "Completed" : due.label)} <span class="schedule-pencil" aria-hidden="true">✎</span></strong>
         <span>${escapeHTML(completionView ? completionDetail : formatDate(task.due))}</span>
-      </div>
+      </button>
     </article>`;
 }
 
@@ -274,7 +396,7 @@ function allApplications() {
 }
 
 function topUpcomingEvents(limit = 3) {
-  const events = section("events")
+  const events = allEvents()
     .filter((event) => {
       const difference = daysFromToday(event.start);
       return difference === null || difference >= 0;
@@ -305,8 +427,10 @@ function progress(value, goal) {
 
 function renderToday() {
   const tasks = openTasks();
-  const mustDo = tasks.slice(0, 3);
-  const later = tasks.slice(3, 7);
+  const planned = plannedTasksToday();
+  const mustDo = todayFocusTasks();
+  const mustDoIds = new Set(mustDo.map((task) => task.id));
+  const later = tasks.filter((task) => !mustDoIds.has(task.id)).slice(0, 4);
   const dsa = todayDsa();
   const apps = currentWeekApplicationCount();
   const events = topUpcomingEvents();
@@ -328,8 +452,8 @@ function renderToday() {
       <div class="dashboard-grid">
         <article class="card card-pad focus-card">
           <div class="section-heading">
-            <div><span class="eyebrow">Must do</span><h2>Your next three</h2></div>
-            <span class="count-badge">${mustDo.length} focus items</span>
+            <div><span class="eyebrow">${planned.length ? "Your order first" : "Automatic focus"}</span><h2>Your next three</h2></div>
+            <div class="heading-actions"><span class="count-badge">${mustDo.length} focus items</span><button class="button button-quiet button-small" type="button" data-nav="now">Arrange today</button></div>
           </div>
           <div class="task-list">
             ${mustDo.length ? mustDo.map((task) => taskRow(task)).join("") : `<div class="empty-state"><strong>The urgent list is clear.</strong><p>Choose one meaningful next task from This week.</p></div>`}
@@ -355,7 +479,7 @@ function renderToday() {
       <div class="strip-grid">
         ${events.map((event) => {
           const due = dueInfo(event.start);
-          return `<article class="mini-card"><span class="date-pill ${due.className}">${escapeHTML(due.label)}</span><h3>${escapeHTML(event.event)}</h3><p>${escapeHTML(event.location || event.notes)}</p></article>`;
+          return `<article class="mini-card"><div class="mini-card-top"><span class="date-pill ${due.className}">${escapeHTML(due.label)}</span>${eventEditButton(event.id)}</div><h3>${escapeHTML(event.event)}</h3><p>${escapeHTML(event.location || event.notes)}</p>${event.schedule_local ? `<span class="local-edit-note">Edited in this app</span>` : ""}</article>`;
         }).join("")}
       </div>
 
@@ -375,10 +499,80 @@ function renderToday() {
     </section>`;
 }
 
+function renderNow() {
+  const tasks = openTasks();
+  const planned = plannedTasksToday();
+  const plannedIds = new Set(planned.map((task) => task.id));
+  const available = tasks.filter((task) => !plannedIds.has(task.id));
+  const suggested = tasks.slice(0, 3);
+  const dateLabel = formatLongDate();
+
+  return `
+    <section class="view now-view">
+      <div class="page-intro">
+        <div><span class="eyebrow">${escapeHTML(dateLabel)}</span><h2>Define your day, then just begin.</h2><p>Put today in the order you want. The first three become Today’s focus; automatic ranking fills any empty spots.</p></div>
+        <button class="button button-quiet" type="button" data-nav="today">Open Today</button>
+      </div>
+
+      <div class="content-grid">
+        <article class="card card-pad span-8 focus-card">
+          <div class="section-heading">
+            <div><span class="eyebrow">Your order</span><h2>Today’s queue</h2><p>Up to eight tasks. The first three lead your Today view.</p></div>
+            <span class="count-badge">${planned.length} planned</span>
+          </div>
+
+          <div class="day-plan-list">
+            ${planned.length ? planned.map((task, index) => {
+              const due = dueInfo(task.due);
+              return `<article class="day-plan-row">
+                <span class="day-plan-order" aria-label="Position ${index + 1}">${index + 1}</span>
+                <button class="check-button" type="button" data-task-id="${id(task.id)}" aria-label="Mark complete: ${escapeHTML(task.task)}" aria-pressed="false">✓</button>
+                <div class="day-plan-copy">
+                  <strong>${escapeHTML(task.task)}</strong>
+                  <span>${escapeHTML(task.next_action || task.area || "Choose the next action")}</span>
+                  <button class="day-plan-date ${due.className}" type="button" data-edit-task="${id(task.id)}">${escapeHTML(due.label)} · edit</button>
+                </div>
+                <div class="day-plan-actions" aria-label="Arrange ${escapeHTML(task.task)}">
+                  <button class="icon-button plan-action" type="button" data-day-move="${id(task.id)}" data-direction="-1" aria-label="Move ${escapeHTML(task.task)} up" ${index === 0 ? "disabled" : ""}>↑</button>
+                  <button class="icon-button plan-action" type="button" data-day-move="${id(task.id)}" data-direction="1" aria-label="Move ${escapeHTML(task.task)} down" ${index === planned.length - 1 ? "disabled" : ""}>↓</button>
+                  <button class="button button-quiet button-small plan-remove" type="button" data-day-remove="${id(task.id)}" aria-label="Remove ${escapeHTML(task.task)} from today">Remove</button>
+                </div>
+              </article>`;
+            }).join("") : `<div class="empty-state now-empty"><strong>You have not arranged today yet.</strong><p>Use the suggested top three, or choose tasks individually below.</p><button class="button button-primary button-small" type="button" data-use-suggested>Use suggested top 3</button></div>`}
+          </div>
+
+          <form class="day-plan-form" id="day-plan-form">
+            <label class="field day-plan-field">
+              <span>Add another open task</span>
+              <select name="task" aria-label="Task to add to today" ${!available.length || planned.length >= 8 ? "disabled" : ""} required>
+                ${available.length ? available.map((task) => `<option value="${id(task.id)}">${escapeHTML(task.priority || "P2")} · ${escapeHTML(task.task)} — ${escapeHTML(dueInfo(task.due).label)}</option>`).join("") : `<option value="">No other open tasks</option>`}
+              </select>
+            </label>
+            <button class="button button-primary" type="submit" ${!available.length || planned.length >= 8 ? "disabled" : ""}>＋ Add to today</button>
+          </form>
+
+          ${planned.length ? `<div class="now-footer-actions"><button class="button button-quiet button-small" type="button" data-use-suggested>Reset to suggested top 3</button><button class="button button-quiet button-small" type="button" data-clear-day-plan>Clear today’s order</button></div>` : ""}
+        </article>
+
+        <aside class="card card-pad span-4 ranking-card">
+          <span class="eyebrow">How automatic Top 3 works</span>
+          <h3>Urgency and importance share the decision.</h3>
+          <div class="ranking-rules">
+            <div><strong>1</strong><p>Only unfinished tasks are considered.</p></div>
+            <div><strong>2</strong><p>Overdue work rises first; P0 starts ahead of P1, and P1 ahead of P2.</p></div>
+            <div><strong>3</strong><p>Nearer deadlines rise each day. Missing dates stay at the end.</p></div>
+          </div>
+          <p class="quiet-note">Your manual order wins. If you choose fewer than three, the automatic list fills the remaining slots.</p>
+          <div class="rollover-note"><strong>Tomorrow is a clean slate.</strong><p>Anything unfinished stays open and returns to automatic ranking. It is never silently deleted.</p></div>
+        </aside>
+      </div>
+    </section>`;
+}
+
 function renderWeek() {
   const dates = weekDates();
   const tasks = allTasks();
-  const events = section("events");
+  const events = allEvents();
   const today = localISODate(new Date(), TIMEZONE);
   const formatter = new Intl.DateTimeFormat("en-IN", { timeZone: TIMEZONE, weekday: "short", day: "numeric", month: "short" });
 
@@ -394,13 +588,13 @@ function renderWeek() {
             const dayTasks = tasks.filter((task) => dateOnly(task.due) === dateString);
             const dayEvents = events.filter((event) => dateOnly(event.start) === dateString);
             const items = [
-              ...dayEvents.map((event) => ({ label: event.event, meta: "Event", className: "event" })),
-              ...dayTasks.map((task) => ({ label: task.task, meta: task.priority, className: (task.priority || "P2").toLowerCase(), done: isDone(task) })),
+              ...dayEvents.map((event) => ({ id: event.id, kind: "event", label: event.event, meta: "Event", className: "event" })),
+              ...dayTasks.map((task) => ({ id: task.id, kind: "task", label: task.task, meta: task.priority, className: (task.priority || "P2").toLowerCase(), done: isDone(task) })),
             ];
             return `<article class="day-column ${dateString === today ? "is-today" : ""}">
               <div class="day-heading"><strong>${escapeHTML(formatter.format(dateAtNoon(dateString)).split(",")[0])}</strong><span>${escapeHTML(formatter.format(dateAtNoon(dateString)).replace(/^[^,]+,?\s*/, ""))}</span></div>
               <div class="day-items">
-                ${items.length ? items.map((item) => `<div class="day-item ${item.className}" style="${item.done ? "opacity:.5;text-decoration:line-through" : ""}"><strong>${escapeHTML(item.meta)}</strong>${escapeHTML(item.label)}</div>`).join("") : `<p class="empty-day">Room to breathe.</p>`}
+                ${items.length ? items.map((item) => `<button class="day-item ${item.className}" type="button" data-edit-${item.kind}="${id(item.id)}" style="${item.done ? "opacity:.5;text-decoration:line-through" : ""}" aria-label="Edit date for ${escapeHTML(item.label)}"><strong>${escapeHTML(item.meta)} · edit</strong>${escapeHTML(item.label)}</button>`).join("") : `<p class="empty-day">Room to breathe.</p>`}
               </div>
             </article>`;
           }).join("")}
@@ -562,7 +756,7 @@ function renderCareer() {
 
 function renderHackathons() {
   const hackathons = section("hackathons");
-  const etEvent = section("events").find((event) => event.id === "et-ai-finale");
+  const etEvent = allEvents().find((event) => event.id === "et-ai-finale");
   const etTasks = openTasks().filter((task) => task.id.startsWith("et-")).slice(0, 6);
   return `<section class="view">
     <div class="page-intro"><div><span class="eyebrow">Apply → prepare → arrive</span><h2>No hackathon deadline gets one line.</h2><p>Each event carries its application step, selection stage, preparation, logistics, and final date.</p></div><button class="button button-quiet" type="button" data-export-calendar>Export all dates</button></div>
@@ -583,7 +777,7 @@ function renderHackathons() {
 
     <div class="content-grid" style="margin-top:16px">
       <article class="card card-pad span-5">
-        <div class="section-heading"><div><span class="eyebrow">ET AI · 25 August</span><h3>Finale facts</h3></div><span class="status-pill status-confirmed">Confirmed</span></div>
+        <div class="section-heading"><div><span class="eyebrow">ET AI · ${escapeHTML(formatDate(etEvent?.start || "2026-08-25", { includeTime: false }))}</span><h3>Finale facts</h3></div><div class="heading-actions"><span class="status-pill status-confirmed">Confirmed</span>${etEvent ? eventEditButton(etEvent.id, "Edit") : ""}</div></div>
         <dl class="info-list">
           <div class="info-row"><dt>Registration</dt><dd>8:00 AM</dd></div>
           <div class="info-row"><dt>Expected finish</dt><dd>6:00 PM</dd></div>
@@ -618,13 +812,13 @@ function renderAcademics() {
 
 function renderTravel() {
   const travel = openTasks().filter((task) => task.area === "Travel");
-  const events = section("events").filter((event) => event.area === "Travel");
+  const events = allEvents().filter((event) => event.area === "Travel");
   const waiting = section("waiting_for").filter((item) => item.area === "Travel");
   return `<section class="view">
     <div class="page-intro"><div><span class="eyebrow">Travel only</span><h2>Every trip is a short chain of decisions.</h2><p>Transport, accommodation, packing, and the return journey live here—separate from your coordinator work.</p></div></div>
     <div class="content-grid">
       <article class="card card-pad span-8"><div class="section-heading"><div><span class="eyebrow">Open logistics</span><h3>Travel chain</h3></div><span class="count-badge">${travel.length}</span></div><div class="task-list">${travel.length ? travel.map((task) => taskRow(task, { showArea: false })).join("") : `<div class="empty-state"><strong>No open travel actions.</strong><p>Add the next trip when its dates are known.</p></div>`}</div></article>
-      <article class="card card-pad span-4"><div class="section-heading"><div><span class="eyebrow">Known itinerary</span><h3>Travel events</h3></div></div><div class="timeline-list">${events.length ? events.map((event) => `<div class="timeline-item"><span class="timeline-mark"></span><div class="timeline-copy"><strong>${escapeHTML(event.event)}</strong><p>${escapeHTML(formatDate(event.start, { weekday: true }))} · ${escapeHTML(event.location || "Location needed")}</p></div></div>`).join("") : `<div class="empty-state"><strong>No journey recorded.</strong><p>Tell Codex when a trip is confirmed.</p></div>`}</div></article>
+      <article class="card card-pad span-4"><div class="section-heading"><div><span class="eyebrow">Known itinerary</span><h3>Travel events</h3></div></div><div class="timeline-list">${events.length ? events.map((event) => `<div class="timeline-item timeline-editable"><span class="timeline-mark"></span><div class="timeline-copy"><strong>${escapeHTML(event.event)}</strong><p>${escapeHTML(formatDate(event.start, { weekday: true }))} · ${escapeHTML(event.location || "Location needed")}</p>${eventEditButton(event.id, "Edit")}</div></div>`).join("") : `<div class="empty-state"><strong>No journey recorded.</strong><p>Tell Codex when a trip is confirmed.</p></div>`}</div></article>
       <article class="card card-pad span-12"><div class="section-heading"><div><span class="eyebrow">Before booking</span><h3>Missing travel details</h3></div></div><div class="strip-grid">${waiting.length ? waiting.map((item) => `<div class="mini-card"><span class="area-pill">Needed</span><h3>${escapeHTML(item.missing_information)}</h3><p>${escapeHTML(item.why_it_matters)}</p></div>`).join("") : `<div class="empty-state"><strong>Nothing is blocking a booking.</strong></div>`}</div></article>
     </div>
   </section>`;
@@ -643,6 +837,7 @@ function renderGoldenJubilee() {
 
 function localChangeCount() {
   return taskStatusChanges().length
+    + scheduleOverrideCount()
     + Object.keys(state.applicationStatuses).length
     + state.localItems.length
     + state.applications.length
@@ -665,7 +860,7 @@ function renderInbox() {
         <div class="section-heading"><div><span class="eyebrow">Website ↔ Dock app</span><h3>What is actually linked?</h3></div></div>
         <dl class="info-list">
           <div class="info-row"><dt>Published plan</dt><dd><strong>Linked.</strong> Tasks and dates in MANAGER.md update on both the website and Safari Dock app after deployment and refresh.</dd></div>
-          <div class="info-row"><dt>Check-offs and DSA</dt><dd><strong>Local.</strong> Treat Safari and the Dock app as separate storage; a check-off may appear in only the place where you made it.</dd></div>
+          <div class="info-row"><dt>Changes made here</dt><dd><strong>Local.</strong> Check-offs, Now ordering, date/time edits, and DSA counts stay in the browser or Dock app where you made them.</dd></div>
           <div class="info-row"><dt>Make it shared</dt><dd>Choose <strong>Copy for Codex</strong>, paste it into this project, and say <strong>publish</strong>. Codex writes the changes into MANAGER.md so every copy can see them.</dd></div>
         </dl>
       </article>
@@ -713,6 +908,7 @@ function renderInbox() {
 
 function renderMore() {
   const links = [
+    ["◎", "Prep", "ML, DL, statistics, DSA, research, Pocket FM, and Akuna", "prep"],
     ["✓", "Completed", "Finished tasks stay visible and can be restored", "completed"],
     ["◇", "Hackathons", "Finales, applications, and logistics", "hackathons"],
     ["□", "Academics", "RL SLP, stochastic quiz, and courses", "academics"],
@@ -730,12 +926,13 @@ function renderView() {
   document.title = `${VIEW_TITLES[validView]} · Anant's Week Manager`;
   document.querySelectorAll("[data-nav]").forEach((button) => button.classList.toggle("is-active", button.dataset.nav === validView));
   document.querySelectorAll(".mobile-nav-item").forEach((button) => {
-    const isMoreArea = ["completed", "hackathons", "academics", "travel", "golden", "inbox", "more"].includes(validView);
+    const isMoreArea = ["prep", "completed", "hackathons", "academics", "travel", "golden", "inbox", "more"].includes(validView);
     button.classList.toggle("is-active", button.dataset.nav === validView || (button.dataset.nav === "more" && isMoreArea));
   });
 
   const renderers = {
     today: renderToday,
+    now: renderNow,
     week: renderWeek,
     completed: renderCompleted,
     prep: renderPrep,
@@ -807,6 +1004,15 @@ function codexUpdateMarkdown() {
   const reopened = allTasks().filter((task) => state.completed[task.id] === false && sourceTaskDone(task));
   const statusChanges = allApplications().filter((application) => state.applicationStatuses[application.id]);
   const dsaEntries = Object.entries(state.dsa).filter(([, count]) => Number(count) > 0).sort(([a], [b]) => a.localeCompare(b));
+  const taskScheduleChanges = Object.entries(state.scheduleOverrides.tasks).map(([taskId, override]) => {
+    const task = sourceTasks().find((item) => item.id === taskId);
+    return `- Task: ${task?.task || taskId} (${taskId}) — due ${override.due}`;
+  });
+  const eventScheduleChanges = Object.entries(state.scheduleOverrides.events).map(([eventId, override]) => {
+    const event = section("events").find((item) => item.id === eventId);
+    return `- Event: ${event?.event || eventId} (${eventId}) — start ${override.start}; end ${override.end}`;
+  });
+  const scheduleChanges = [...taskScheduleChanges, ...eventScheduleChanges];
   const lines = [
     "# Week Manager update",
     "",
@@ -821,6 +1027,10 @@ function codexUpdateMarkdown() {
     "## Reopened",
     "",
     ...(reopened.length ? reopened.map((task) => `- [ ] ${task.task} (${task.id})`) : ["- None recorded"]),
+    "",
+    "## Date and time changes",
+    "",
+    ...(scheduleChanges.length ? scheduleChanges : ["- None recorded"]),
     "",
     "## Application status changes",
     "",
@@ -860,7 +1070,7 @@ function icsDate(value) {
 function calendarICS() {
   const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const entries = [];
-  for (const event of section("events")) {
+  for (const event of allEvents()) {
     const start = icsDate(event.start);
     if (!start) continue;
     let end = icsDate(event.end) || start;
@@ -911,6 +1121,54 @@ document.addEventListener("click", async (event) => {
   const nav = event.target.closest("[data-nav]");
   if (nav) {
     navigate(nav.dataset.nav);
+    return;
+  }
+
+  const editTask = event.target.closest("[data-edit-task]");
+  if (editTask) {
+    openScheduleEditor("tasks", editTask.dataset.editTask);
+    return;
+  }
+
+  const editEvent = event.target.closest("[data-edit-event]");
+  if (editEvent) {
+    openScheduleEditor("events", editEvent.dataset.editEvent);
+    return;
+  }
+
+  const moveTodayTask = event.target.closest("[data-day-move]");
+  if (moveTodayTask) {
+    const plan = currentDayPlanIds();
+    const fromIndex = plan.indexOf(moveTodayTask.dataset.dayMove);
+    const toIndex = fromIndex + Number(moveTodayTask.dataset.direction);
+    if (fromIndex >= 0 && toIndex >= 0 && toIndex < plan.length) {
+      [plan[fromIndex], plan[toIndex]] = [plan[toIndex], plan[fromIndex]];
+      setTodayPlan(plan);
+      saveState();
+      showToast("Today’s order updated.");
+    }
+    return;
+  }
+
+  const removeTodayTask = event.target.closest("[data-day-remove]");
+  if (removeTodayTask) {
+    setTodayPlan(currentDayPlanIds().filter((taskId) => taskId !== removeTodayTask.dataset.dayRemove));
+    saveState();
+    showToast("Removed from today only. The task is still open.");
+    return;
+  }
+
+  if (event.target.closest("[data-use-suggested]")) {
+    setTodayPlan(openTasks().slice(0, 3).map((task) => task.id));
+    saveState();
+    showToast("Today now starts with the suggested top three.");
+    return;
+  }
+
+  if (event.target.closest("[data-clear-day-plan]")) {
+    setTodayPlan([]);
+    saveState();
+    showToast("Today’s manual order cleared. Automatic ranking is active.");
     return;
   }
 
@@ -1007,7 +1265,8 @@ document.addEventListener("click", async (event) => {
   }
 
   if (event.target.closest("[data-close-dialog]")) {
-    event.target.closest("dialog")?.close();
+    const dialog = event.target.closest("dialog");
+    dialog?.close();
   }
 });
 
@@ -1021,6 +1280,76 @@ document.addEventListener("change", (event) => {
 });
 
 quickKind.addEventListener("change", updateQuickLabels);
+
+scheduleForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!editingSchedule) return;
+
+  const { kind, itemId } = editingSchedule;
+  if (kind === "tasks") {
+    const due = composeSchedule(taskDueDate.value, taskDueTime.value);
+    const source = sourceTasks().find((task) => task.id === itemId);
+    if (!source) return;
+    if (due === source.due) delete state.scheduleOverrides.tasks[itemId];
+    else state.scheduleOverrides.tasks[itemId] = { due };
+  } else {
+    eventStartTime.setCustomValidity("");
+    eventEndDate.setCustomValidity("");
+    const startDate = eventStartDate.value;
+    const startTime = eventStartTime.value;
+    const endDate = eventEndDate.value || startDate;
+    let endTime = eventEndTime.value;
+
+    if (endTime && !startTime) {
+      eventStartTime.setCustomValidity("Add a start time, or leave both times blank for an all-day event.");
+      eventStartTime.reportValidity();
+      return;
+    }
+    if (startTime && !endTime) endTime = startTime;
+
+    const start = composeSchedule(startDate, startTime);
+    const end = composeSchedule(endDate, endTime);
+    const startValue = managerDate(start)?.getTime();
+    const endValue = managerDate(end)?.getTime();
+    if (Number.isFinite(startValue) && Number.isFinite(endValue) && endValue < startValue) {
+      eventEndDate.setCustomValidity("The event must end after it starts.");
+      eventEndDate.reportValidity();
+      return;
+    }
+
+    const source = section("events").find((item) => item.id === itemId);
+    if (!source) return;
+    if (start === source.start && end === source.end) delete state.scheduleOverrides.events[itemId];
+    else state.scheduleOverrides.events[itemId] = { start, end };
+  }
+
+  saveState({ render: false });
+  scheduleDialog.close();
+  renderView();
+  showToast("Date and time saved in this app.");
+});
+
+resetScheduleButton.addEventListener("click", () => {
+  if (!editingSchedule) return;
+  delete state.scheduleOverrides[editingSchedule.kind][editingSchedule.itemId];
+  saveState({ render: false });
+  scheduleDialog.close();
+  renderView();
+  showToast("Published date and time restored.");
+});
+
+scheduleDialog.addEventListener("close", () => {
+  editingSchedule = null;
+  eventStartTime.setCustomValidity("");
+  eventEndDate.setCustomValidity("");
+});
+
+[eventStartDate, eventStartTime, eventEndDate, eventEndTime].forEach((input) => {
+  input.addEventListener("input", () => {
+    eventStartTime.setCustomValidity("");
+    eventEndDate.setCustomValidity("");
+  });
+});
 
 quickForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -1054,6 +1383,16 @@ quickForm.addEventListener("submit", (event) => {
 });
 
 document.addEventListener("submit", (event) => {
+  if (event.target.id === "day-plan-form") {
+    event.preventDefault();
+    const taskId = event.target.elements.task.value;
+    if (!taskId) return;
+    setTodayPlan([...currentDayPlanIds(), taskId]);
+    saveState();
+    showToast("Added to today’s queue.");
+    return;
+  }
+
   if (event.target.id !== "inbox-form") return;
   event.preventDefault();
   const input = event.target.elements.capture;
@@ -1083,6 +1422,11 @@ importInput.addEventListener("change", async () => {
       schema: DEFAULT_STATE.schema,
       completed,
       completedAt: { ...(imported.completedAt || {}) },
+      scheduleOverrides: {
+        tasks: { ...(imported.scheduleOverrides?.tasks || {}) },
+        events: { ...(imported.scheduleOverrides?.events || {}) },
+      },
+      dayPlans: imported.dayPlans && typeof imported.dayPlans === "object" ? imported.dayPlans : {},
       applicationStatuses: { ...(imported.applicationStatuses || {}) },
       dsa: { ...(imported.dsa || {}) },
       localItems: Array.isArray(imported.localItems) ? imported.localItems : [],

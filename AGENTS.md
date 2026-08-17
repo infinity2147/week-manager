@@ -15,6 +15,7 @@ This repository is Anant's personal planning source. Keep it calm, concrete, and
 9. Run `npm test` after every data or application change.
 10. When Anant says “add these to my manager and publish,” accept unstructured prose, screenshots, or pasted emails; update the source, test, commit, push `main`, and verify the Pages deployment. Do not ask him to fill Markdown tables.
 11. When a browser handoff marks a task completed or reopened, update its `Status` in `MANAGER.md` to `Done` or `Open` before publishing so the state becomes visible across installations.
+12. When a browser handoff changes a task or event schedule, update the matching task `Due` or event `Start` and `End` values before publishing. Browser day-order preferences are intentionally temporary and should not be written into `MANAGER.md`.
 
 ## Golden Jubilee
 
@@ -40,6 +41,7 @@ This repository is Anant's personal planning source. Keep it calm, concrete, and
 
 - Keep a light-only, low-glare, high-contrast visual theme. Do not add a dark theme, neon accents, glassmorphism, gradients, or generic AI/SaaS styling.
 - The Today view must continue to foreground at most three tasks.
+- Preserve the Now view's date-keyed manual order: it overrides Today for the current date, fills missing focus slots automatically, and never changes task completion or durable source data by itself.
 - Preserve local-first browser storage and export/import. Never place API tokens in client-side files.
 - GitHub Pages is static. Any Codex, Telegram, or Instagram credential must remain server-side or in repository secrets.
 

@@ -14,17 +14,28 @@ Open <http://localhost:8080>. Opening `index.html` directly will not work becaus
 
 ## Everyday use
 
-1. Open **Today** and work only from the first three items.
-2. Tap `+` as you solve DSA questions; log each submitted application.
-3. For any new information, open this folder in Codex and say: `Add these to my manager and publish: ...` Then write naturally or paste the original email/message. No table or special format is required.
-4. If Codex is not open, use the website Inbox as a temporary scratchpad. Later choose **Copy for Codex** and paste the generated update into Codex.
-5. Travel and Golden Jubilee have separate views. Golden Jubilee is Anant's overall-coordinator board.
+1. Open **Now** to arrange up to eight things for today. The first three become the **Today** focus; use the arrow buttons to reorder them.
+2. Open **Today** and work only from those first three items. If fewer than three were chosen manually, automatic ranking fills the gaps.
+3. Tap `+` as you solve DSA questions; log each submitted application.
+4. For any new information, open this folder in Codex and say: `Add these to my manager and publish: ...` Then write naturally or paste the original email/message. No table or special format is required.
+5. If Codex is not open, use the website Inbox as a temporary scratchpad. Later choose **Copy for Codex** and paste the generated update into Codex.
+6. Travel and Golden Jubilee have separate views. Golden Jubilee is Anant's overall-coordinator board.
+
+The automatic Top 3 considers only unfinished work. Its score gives overdue tasks the strongest urgency boost, starts P0 ahead of P1 and P1 ahead of P2, raises nearer deadlines each day, and leaves undated work at the end. A manual **Now** order always wins. The order is keyed to the current date, so tomorrow starts clean while every unfinished task remains open in the normal queue.
 
 ## Website and Dock app sync
 
 - The website and Safari Dock app load the same published code and `MANAGER.md`, so Codex-published tasks, dates, and status updates appear in both after a refresh.
-- Check-offs, DSA counts, quick notes, and locally logged applications use browser storage. Treat Safari and the Dock app as separate for this local data.
+- Check-offs, today's manual order, date/time edits, DSA counts, quick notes, and locally logged applications use browser storage. Treat Safari and the Dock app as separate for this local data.
 - Completed tasks move to **Completed** instead of disappearing. To make a local completion visible everywhere, use **Inbox & sync → Copy for Codex**, paste the update into Codex, and ask it to publish.
+
+## Edit dates and times
+
+- Tap any task deadline (or its pencil) to change its date and optional time.
+- Tap an event's **Edit** button, or tap it in the weekly grid, to change its start and end.
+- Leaving the time blank makes an all-day date. If a start time is supplied without an end time, the event is saved as ending at the same time.
+- These edits immediately affect ordering and calendar export in the current browser or Dock app. Use **Inbox & sync → Copy for Codex** to publish them into `MANAGER.md` so every installation and Telegram sees them.
+- The edit dialog's **Use published schedule** button discards the local override.
 
 ## Install it on your desktop
 

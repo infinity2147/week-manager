@@ -127,9 +127,9 @@ This file is the durable source of truth. Tell Codex what changed in plain langu
 
 ## Operating Rules
 
-1. The Today view shows at most three must-do items before everything else.
+1. The Today view shows at most three must-do items before everything else. A manual order created in Now takes precedence for that date; incomplete items return to normal automatic ranking on the next date.
 2. P0 means a real deadline, travel dependency, or high-cost miss. P1 protects important progress. P2 is movable.
-3. Website check-offs are intentionally local and fast. They remain visible in the Completed view. Export or copy the Codex update when you want them written back here and shared across the website, Dock app, and Telegram source.
+3. Website check-offs, day ordering, and date/time edits are intentionally local and fast. Completed work remains visible in the Completed view. Export or copy the Codex update when you want durable changes written back here and shared across the website, Dock app, and Telegram source.
 4. Akuna challenge content is confidential. Track only preparation, time, and submission status.
 5. When a rejection arrives, record the stage, evidence, follow-up/recovery action, and earliest sensible reapplication date—never just the word “rejected.”
 6. Golden Jubilee is its own area. Anant is the overall coordinator; never combine its work with Travel.

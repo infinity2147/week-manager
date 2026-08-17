@@ -32,6 +32,9 @@
           <button class="nav-item is-active" type="button" data-nav="today">
             <span aria-hidden="true">⌂</span><span>Today</span>
           </button>
+          <button class="nav-item" type="button" data-nav="now">
+            <span aria-hidden="true">→</span><span>Now</span>
+          </button>
           <button class="nav-item" type="button" data-nav="week">
             <span aria-hidden="true">▦</span><span>This week</span>
           </button>
@@ -94,8 +97,8 @@
 
     <nav class="mobile-nav" aria-label="Mobile navigation">
       <button class="mobile-nav-item is-active" type="button" data-nav="today"><span>⌂</span>Today</button>
+      <button class="mobile-nav-item" type="button" data-nav="now"><span>→</span>Now</button>
       <button class="mobile-nav-item" type="button" data-nav="week"><span>▦</span>Week</button>
-      <button class="mobile-nav-item" type="button" data-nav="prep"><span>◎</span>Prep</button>
       <button class="mobile-nav-item" type="button" data-nav="career"><span>↗</span>Apps</button>
       <button class="mobile-nav-item" type="button" data-nav="more"><span>•••</span>More</button>
     </nav>
@@ -152,6 +155,63 @@
         <div class="modal-actions">
           <button class="button button-quiet" type="button" data-close-dialog>Cancel</button>
           <button class="button button-primary" type="submit">Save to this device</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal modal-compact" id="schedule-dialog">
+      <form id="schedule-form">
+        <div class="modal-heading">
+          <div>
+            <span class="eyebrow">Edit date & time</span>
+            <h2 id="schedule-dialog-title">Change schedule</h2>
+            <p class="schedule-name" id="schedule-name"></p>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close">×</button>
+        </div>
+
+        <div class="schedule-fields" id="task-schedule-fields">
+          <div class="field-row">
+            <label class="field">
+              <span>Deadline date</span>
+              <input id="task-due-date" type="date" required />
+            </label>
+            <label class="field">
+              <span>Deadline time <small>optional</small></span>
+              <input id="task-due-time" type="time" />
+            </label>
+          </div>
+        </div>
+
+        <div class="schedule-fields" id="event-schedule-fields" hidden>
+          <div class="field-row">
+            <label class="field">
+              <span>Starts on</span>
+              <input id="event-start-date" type="date" required />
+            </label>
+            <label class="field">
+              <span>Start time <small>optional</small></span>
+              <input id="event-start-time" type="time" />
+            </label>
+          </div>
+          <div class="field-row">
+            <label class="field">
+              <span>Ends on</span>
+              <input id="event-end-date" type="date" />
+            </label>
+            <label class="field">
+              <span>End time <small>optional</small></span>
+              <input id="event-end-time" type="time" />
+            </label>
+          </div>
+        </div>
+
+        <p class="quiet-note">Leaving time blank makes it an all-day date. This edit is saved in the current browser or Dock app.</p>
+        <div class="modal-actions schedule-actions">
+          <button class="button button-quiet" id="reset-schedule-button" type="button">Use published schedule</button>
+          <span class="modal-action-spacer"></span>
+          <button class="button button-quiet" type="button" data-close-dialog>Cancel</button>
+          <button class="button button-primary" type="submit">Save date & time</button>
         </div>
       </form>
     </dialog>

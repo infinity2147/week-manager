@@ -1,4 +1,4 @@
-const CACHE_NAME = "anant-week-manager-v5";
+const CACHE_NAME = "anant-week-manager-v6";
 const CORE_ASSETS = [
   "./",
   "./index.html",
