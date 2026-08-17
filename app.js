@@ -32,7 +32,6 @@ const DEFAULT_STATE = {
   localItems: [],
   applications: [],
   inbox: [],
-  assistantMessages: [],
 };
 
 let manager = { metadata: {}, sections: {} };
@@ -54,23 +53,19 @@ const quickDetail = document.querySelector("#quick-detail");
 const installDialog = document.querySelector("#install-dialog");
 const installButton = document.querySelector("#install-button");
 const importInput = document.querySelector("#import-input");
-const assistantToggle = document.querySelector("#assistant-toggle");
-const assistantPanel = document.querySelector("#assistant-panel");
-const assistantClose = document.querySelector("#assistant-close");
-const assistantForm = document.querySelector("#assistant-form");
-const assistantInput = document.querySelector("#assistant-input");
-const assistantMessages = document.querySelector("#assistant-messages");
 
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const savedState = saved && typeof saved === "object" ? { ...saved } : {};
+    delete savedState.assistantMessages;
     const savedCompleted = saved?.completed && typeof saved.completed === "object" ? saved.completed : {};
     const completed = Number(saved?.schema) >= 2
       ? savedCompleted
       : Object.fromEntries(Object.entries(savedCompleted).filter(([, value]) => value === true));
     return {
       ...DEFAULT_STATE,
-      ...(saved && typeof saved === "object" ? saved : {}),
+      ...savedState,
       schema: DEFAULT_STATE.schema,
       completed: { ...DEFAULT_STATE.completed, ...completed },
       completedAt: { ...DEFAULT_STATE.completedAt, ...(saved?.completedAt || {}) },
@@ -79,7 +74,6 @@ function loadState() {
       localItems: Array.isArray(saved?.localItems) ? saved.localItems : [],
       applications: Array.isArray(saved?.applications) ? saved.applications : [],
       inbox: Array.isArray(saved?.inbox) ? saved.inbox : [],
-      assistantMessages: Array.isArray(saved?.assistantMessages) ? saved.assistantMessages.slice(-12) : [],
     };
   } catch {
     return structuredClone(DEFAULT_STATE);
@@ -125,95 +119,6 @@ function addDays(isoDate, amount) {
   const date = dateAtNoon(isoDate);
   date.setUTCDate(date.getUTCDate() + amount);
   return localISODate(date, TIMEZONE);
-}
-
-function inferAssistantDate(message) {
-  const text = message.toLowerCase();
-  const today = localISODate(new Date(), TIMEZONE);
-  if (/\btoday\b/.test(text)) return today;
-  if (/\btomorrow\b/.test(text)) return addDays(today, 1);
-
-  const iso = text.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
-  if (iso) return iso[1];
-
-  const months = {
-    jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3,
-    apr: 4, april: 4, may: 5, jun: 6, june: 6, jul: 7, july: 7,
-    aug: 8, august: 8, sep: 9, sept: 9, september: 9, oct: 10,
-    october: 10, nov: 11, november: 11, dec: 12, december: 12,
-  };
-  const namedDate = text.match(/\b(\d{1,2})\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)(?:\s+(20\d{2}))?\b/);
-  if (namedDate) {
-    const year = Number(namedDate[3] || today.slice(0, 4));
-    const month = months[namedDate[2]];
-    const day = Number(namedDate[1]);
-    if (month && day >= 1 && day <= 31) return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-  }
-
-  const weekdays = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
-  const weekday = Object.keys(weekdays).find((day) => new RegExp(`\\b${day}\\b`).test(text));
-  if (weekday) {
-    const currentDay = dateAtNoon(today).getUTCDay();
-    let difference = (weekdays[weekday] - currentDay + 7) % 7;
-    if (difference === 0) difference = 7;
-    return addDays(today, difference);
-  }
-  return "";
-}
-
-function inferAssistantArea(message) {
-  const text = message.toLowerCase();
-  if (/golden jubilee|\bgj\b|\bdj\b/.test(text)) return "Golden Jubilee";
-  if (/flight|train|hotel|stay|airport|travel|trip|ticket|home journey/.test(text)) return "Travel";
-  if (/resume|job|career|interview|application|apply|recruit/.test(text)) return "Career";
-  if (/hackathon|finale|demo|pitch|devfolio/.test(text)) return "Hackathon";
-  if (/quiz|course|class|assignment|presentation|stochastic|cs6103|operation analysis|vng|rl slp/.test(text)) return "Academics";
-  if (/dsa|machine learning|\bml\b|deep learning|\bdl\b|statistics|prep|practice|research paper/.test(text)) return "Prep";
-  return "Personal";
-}
-
-function assistantTaskTitle(message) {
-  const weekdayPattern = "monday|tuesday|wednesday|thursday|friday|saturday|sunday";
-  const monthPattern = "jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?";
-  const cleaned = message
-    .replace(/^\s*(?:please\s+)?(?:add|create)(?:\s+(?:a|this))?(?:\s+(?:task|reminder))?\s*[:,-]?\s*/i, "")
-    .replace(/^\s*remind me to\s+/i, "")
-    .replace(/\b(?:by|on)?\s*(?:today|tomorrow)\b/ig, "")
-    .replace(new RegExp(`\\b(?:by|on)?\\s*(?:${weekdayPattern})\\b`, "ig"), "")
-    .replace(new RegExp(`\\b(?:by|on)?\\s*\\d{1,2}\\s+(?:${monthPattern})(?:\\s+20\\d{2})?\\b`, "ig"), "")
-    .replace(/\b(?:by|on)?\s*20\d{2}-\d{2}-\d{2}\b/ig, "")
-    .replace(/\s{2,}/g, " ")
-    .replace(/[\s,.-]+$/, "")
-    .trim();
-  return cleaned || message.trim();
-}
-
-function parseAssistantTask(message) {
-  return {
-    title: assistantTaskTitle(message),
-    date: inferAssistantDate(message),
-    area: inferAssistantArea(message),
-    kind: /\burgent\b|\bdeadline\b|\bdue\b/i.test(message) ? "Deadline" : "Task",
-  };
-}
-
-function renderAssistant() {
-  const messages = state.assistantMessages || [];
-  const welcome = `<div class="assistant-message is-assistant">Tell me one task in a normal sentence. I can recognize basic dates such as today, tomorrow, Friday, 25 Aug, or 2026-08-25.</div>`;
-  assistantMessages.innerHTML = messages.length
-    ? messages.map((message) => `<div class="assistant-message is-${message.role === "user" ? "user" : "assistant"}">${escapeHTML(message.text)}</div>`).join("")
-    : welcome;
-  assistantMessages.scrollTop = assistantMessages.scrollHeight;
-}
-
-function setAssistantOpen(open) {
-  assistantPanel.hidden = !open;
-  assistantToggle.hidden = open;
-  assistantToggle.setAttribute("aria-expanded", String(open));
-  if (open) {
-    renderAssistant();
-    requestAnimationFrame(() => assistantInput.focus());
-  }
 }
 
 function dateOnly(value) {
@@ -1117,40 +1022,6 @@ document.addEventListener("change", (event) => {
 
 quickKind.addEventListener("change", updateQuickLabels);
 
-assistantToggle.addEventListener("click", () => setAssistantOpen(true));
-assistantClose.addEventListener("click", () => setAssistantOpen(false));
-assistantInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
-    event.preventDefault();
-    assistantForm.requestSubmit();
-  }
-});
-
-assistantForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const message = assistantInput.value.trim();
-  if (!message) return;
-  const parsed = parseAssistantTask(message);
-  state.localItems.push({
-    id: uniqueId("chat-task"),
-    kind: parsed.kind,
-    title: parsed.title,
-    date: parsed.date,
-    area: parsed.area,
-    detail: "Added through the local quick assistant",
-    createdAt: new Date().toISOString(),
-  });
-  const dateLabel = parsed.date ? formatDate(parsed.date, { includeTime: false, weekday: true }) : "date not set";
-  state.assistantMessages = [
-    ...(state.assistantMessages || []),
-    { role: "user", text: message },
-    { role: "assistant", text: `Added “${parsed.title}” to ${parsed.area} · ${dateLabel}.` },
-  ].slice(-12);
-  assistantInput.value = "";
-  saveState();
-  renderAssistant();
-});
-
 quickForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const kind = quickKind.value;
@@ -1201,6 +1072,7 @@ importInput.addEventListener("change", async () => {
     const parsed = JSON.parse(await file.text());
     const imported = parsed.state || parsed;
     if (!imported || typeof imported !== "object") throw new Error("Invalid backup");
+    delete imported.assistantMessages;
     const importedCompleted = imported.completed && typeof imported.completed === "object" ? imported.completed : {};
     const completed = Number(imported.schema) >= 2
       ? importedCompleted
@@ -1216,7 +1088,6 @@ importInput.addEventListener("change", async () => {
       localItems: Array.isArray(imported.localItems) ? imported.localItems : [],
       applications: Array.isArray(imported.applications) ? imported.applications : [],
       inbox: Array.isArray(imported.inbox) ? imported.inbox : [],
-      assistantMessages: Array.isArray(imported.assistantMessages) ? imported.assistantMessages.slice(-12) : [],
     };
     saveState();
     showToast("Backup imported.");
@@ -1259,7 +1130,6 @@ async function init() {
     const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
     installButton.hidden = Boolean(standalone);
     renderView();
-    renderAssistant();
   } catch (error) {
     viewRoot.innerHTML = `<section class="source-error"><h2>The plan could not load.</h2><p>${escapeHTML(error.message)}</p><p>If you opened <code>index.html</code> directly, start a local web server instead: <code>python3 -m http.server 8080</code>, then open <code>http://localhost:8080</code>.</p><a href="./MANAGER.md">Open MANAGER.md</a></section>`;
   }

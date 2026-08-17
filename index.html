@@ -170,24 +170,6 @@
       </div>
     </dialog>
 
-    <button class="assistant-fab" id="assistant-toggle" type="button" aria-controls="assistant-panel" aria-expanded="false">
-      <span aria-hidden="true">＋</span> Add by chat
-    </button>
-
-    <aside class="assistant-panel" id="assistant-panel" aria-label="Quick task chat" hidden>
-      <div class="assistant-heading">
-        <div><span class="eyebrow">Local quick assistant</span><strong>Add a task naturally</strong></div>
-        <button class="icon-button" id="assistant-close" type="button" aria-label="Close task chat">×</button>
-      </div>
-      <div class="assistant-messages" id="assistant-messages" aria-live="polite"></div>
-      <form class="assistant-form" id="assistant-form">
-        <label class="sr-only" for="assistant-input">Task to add</label>
-        <textarea id="assistant-input" name="message" rows="2" maxlength="280" required placeholder="e.g. Golden Jubilee: call the vendor Friday"></textarea>
-        <button class="button button-primary button-small" type="submit">Add task</button>
-      </form>
-      <p class="assistant-privacy">Saved instantly in this app. Batch-publish later from Inbox & sync.</p>
-    </aside>
-
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <input id="import-input" type="file" accept="application/json" hidden />
 
