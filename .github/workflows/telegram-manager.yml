@@ -1,0 +1,120 @@
+name: Telegram manager
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Process messages or clear the existing Telegram backlog
+        required: true
+        default: process
+        type: choice
+        options:
+          - process
+          - reset_backlog
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: telegram-manager
+  cancel-in-progress: false
+
+jobs:
+  manage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MANAGER_SITE_URL: https://infinity2147.github.io/week-manager/
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Read new Telegram messages
+        id: inbox
+        env:
+          PROCESS_MODE: ${{ inputs.mode || 'process' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: node scripts/telegram-manager.mjs prepare --mode="$PROCESS_MODE"
+
+      - name: Let Codex understand and update the manager
+        id: codex
+        if: steps.inbox.outputs.has_messages == 'true'
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .telegram-run/prompt.md
+          output-file: .telegram-run/agent-response.json
+          output-schema-file: .github/codex/telegram-response.schema.json
+          model: gpt-5.6-luna
+          effort: medium
+          permission-profile: ":workspace"
+          safety-strategy: drop-sudo
+          allow-bots: true
+          codex-args: '["--ephemeral"]'
+
+      - name: Check the agent edit boundary
+        if: steps.inbox.outputs.has_messages == 'true'
+        run: node scripts/telegram-manager.mjs verify
+
+      - name: Validate Week Manager
+        if: steps.inbox.outputs.has_messages == 'true'
+        run: npm test
+
+      - name: Detect a durable manager change
+        id: change
+        if: steps.inbox.outputs.has_messages == 'true'
+        shell: bash
+        run: |
+          if git diff --quiet -- MANAGER.md; then
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish the manager update
+        if: steps.change.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh auth setup-git
+          git config user.name "Week Manager Telegram Bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add MANAGER.md
+          git commit -m "Update manager from Telegram"
+          git pull --rebase origin main
+          git push origin main
+
+      - name: Refresh GitHub Pages
+        if: steps.change.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main
+
+      - name: Reply on Telegram
+        if: steps.inbox.outputs.has_messages == 'true'
+        env:
+          MANAGER_PUBLISHED: ${{ steps.change.outputs.published || 'false' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node scripts/telegram-manager.mjs finish --published="$MANAGER_PUBLISHED"
+
+      - name: Report a processing failure on Telegram
+        if: failure() && steps.inbox.outputs.has_messages == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node scripts/telegram-manager.mjs fail

@@ -2,6 +2,7 @@
 .env
 .env.*
 node_modules/
+.telegram-run/
 playwright-report/
 test-results/
 *.log
