@@ -20,6 +20,7 @@ This file is the durable source of truth. Tell Codex what changed in plain langu
 | home-route | Confirm home destination and return airport | Travel | 2026-08-18T19:00:00+05:30 | P0 | Open | 10m | Record destination, baggage, and preferred return date |  | Needed before booking the post-finale flight |
 | home-flight | Book the flight home after ET AI | Travel | 2026-08-19T20:00:00+05:30 | P0 | Open | 30m | Prefer a safely timed late flight or 26 Aug morning after checking airport travel time |  | Finale is expected to end around 6:00 PM on 25 Aug |
 | akuna-prep | Review Akuna overview, instructional video, and prep tips | Career | 2026-08-18T20:30:00+05:30 | P0 | Open | 1h | Read the supplied prep document and block challenge time |  | AI is allowed; all other work must remain individual |
+| resume-master | Create a reusable master resume | Career | 2026-08-19T16:00:00+05:30 | P0 | Open | 1h 30m | Collect education, projects, research, achievements, and quantified impact into one source document |  | Personal sequencing deadline; feeds the ML research resume |
 | resume-external | Finish the ML research resume for external applications | Career | 2026-08-19T18:00:00+05:30 | P0 | Open | 2h | Make one strong base resume, then tailor only the top third |  | Unblocks the weekly application target |
 | et-deck-v1 | Complete ET AI finale deck version 1 | Hackathon | 2026-08-20T21:00:00+05:30 | P0 | Open | 3h | Build a 7–8 minute story with problem, solution, evidence, demo, and close |  | Keep backup PDF and offline copy |
 | goa-apply | Apply to Hacker House Goa 2026 | Hackathon | 2026-08-20T21:30:00+05:30 | P1 | Open | 45m | Submit the Devfolio application and capture any shortlisting task | https://hacker-house-goa-2026.devfolio.co/overview?ref=f66c3dc86d | Personal deadline; official exact close time is not published on the page |
@@ -128,7 +129,7 @@ This file is the durable source of truth. Tell Codex what changed in plain langu
 
 1. The Today view shows at most three must-do items before everything else.
 2. P0 means a real deadline, travel dependency, or high-cost miss. P1 protects important progress. P2 is movable.
-3. Website check-offs are intentionally local and fast. Export or copy the Codex update when you want them written back here.
+3. Website check-offs are intentionally local and fast. They remain visible in the Completed view. Export or copy the Codex update when you want them written back here and shared across the website, Dock app, and Telegram source.
 4. Akuna challenge content is confidential. Track only preparation, time, and submission status.
 5. When a rejection arrives, record the stage, evidence, follow-up/recovery action, and earliest sensible reapplication date—never just the word “rejected.”
 6. Golden Jubilee is its own area. Anant is the overall coordinator; never combine its work with Travel.

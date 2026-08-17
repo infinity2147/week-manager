@@ -14,6 +14,7 @@ This repository is Anant's personal planning source. Keep it calm, concrete, and
 8. Update the top `Updated` date and `Current week` only when appropriate.
 9. Run `npm test` after every data or application change.
 10. When Anant says “add these to my manager and publish,” accept unstructured prose, screenshots, or pasted emails; update the source, test, commit, push `main`, and verify the Pages deployment. Do not ask him to fill Markdown tables.
+11. When a browser handoff marks a task completed or reopened, update its `Status` in `MANAGER.md` to `Done` or `Open` before publishing so the state becomes visible across installations.
 
 ## Golden Jubilee
 

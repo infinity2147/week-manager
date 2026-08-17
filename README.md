@@ -20,6 +20,13 @@ Open <http://localhost:8080>. Opening `index.html` directly will not work becaus
 4. If Codex is not open, use the website Inbox as a temporary scratchpad. Later choose **Copy for Codex** and paste the generated update into Codex.
 5. Travel and Golden Jubilee have separate views. Golden Jubilee is Anant's overall-coordinator board.
 
+## Website and Dock app sync
+
+- The website and Safari Dock app load the same published code and `MANAGER.md`, so Codex-published tasks, dates, and status updates appear in both after a refresh.
+- Check-offs, DSA counts, quick notes, and locally logged applications use browser storage. Treat Safari and the Dock app as separate for this local data.
+- Completed tasks move to **Completed** instead of disappearing. To make a local completion visible everywhere, use **Inbox & sync → Copy for Codex**, paste the update into Codex, and ask it to publish.
+- The **Add by chat** button creates tasks immediately in the current browser or Dock app. It recognizes common areas and simple dates without using an API key. These tasks join the same batch-sync queue in **Inbox & sync**.
+
 ## Install it on your desktop
 
 This is a PWA, which is the most reliable website-based equivalent of a small desktop widget:

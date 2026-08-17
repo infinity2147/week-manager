@@ -35,6 +35,9 @@
           <button class="nav-item" type="button" data-nav="week">
             <span aria-hidden="true">▦</span><span>This week</span>
           </button>
+          <button class="nav-item" type="button" data-nav="completed">
+            <span aria-hidden="true">✓</span><span>Completed</span>
+          </button>
           <button class="nav-item" type="button" data-nav="prep">
             <span aria-hidden="true">◎</span><span>Prep</span>
           </button>
@@ -60,7 +63,7 @@
 
         <div class="sidebar-note">
           <span class="status-dot" aria-hidden="true"></span>
-          <span><strong>Local-first</strong><br />Your check-offs stay private on this device.</span>
+          <span><strong>Published plan: shared</strong><br />Check-offs: saved only in this app.</span>
         </div>
       </aside>
 
@@ -166,6 +169,24 @@
         <button class="button button-primary" type="button" data-close-dialog>Got it</button>
       </div>
     </dialog>
+
+    <button class="assistant-fab" id="assistant-toggle" type="button" aria-controls="assistant-panel" aria-expanded="false">
+      <span aria-hidden="true">＋</span> Add by chat
+    </button>
+
+    <aside class="assistant-panel" id="assistant-panel" aria-label="Quick task chat" hidden>
+      <div class="assistant-heading">
+        <div><span class="eyebrow">Local quick assistant</span><strong>Add a task naturally</strong></div>
+        <button class="icon-button" id="assistant-close" type="button" aria-label="Close task chat">×</button>
+      </div>
+      <div class="assistant-messages" id="assistant-messages" aria-live="polite"></div>
+      <form class="assistant-form" id="assistant-form">
+        <label class="sr-only" for="assistant-input">Task to add</label>
+        <textarea id="assistant-input" name="message" rows="2" maxlength="280" required placeholder="e.g. Golden Jubilee: call the vendor Friday"></textarea>
+        <button class="button button-primary button-small" type="submit">Add task</button>
+      </form>
+      <p class="assistant-privacy">Saved instantly in this app. Batch-publish later from Inbox & sync.</p>
+    </aside>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <input id="import-input" type="file" accept="application/json" hidden />

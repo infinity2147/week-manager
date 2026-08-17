@@ -11,6 +11,7 @@ const STATUS_OPTIONS = ["Interested", "Applied", "Challenge", "Interview", "Offe
 const VIEW_TITLES = {
   today: "Today",
   week: "This week",
+  completed: "Completed",
   prep: "Prep",
   career: "Applications",
   hackathons: "Hackathons",
@@ -22,14 +23,16 @@ const VIEW_TITLES = {
 };
 
 const DEFAULT_STATE = {
-  schema: 1,
+  schema: 2,
   view: "today",
   completed: {},
+  completedAt: {},
   applicationStatuses: {},
   dsa: {},
   localItems: [],
   applications: [],
   inbox: [],
+  assistantMessages: [],
 };
 
 let manager = { metadata: {}, sections: {} };
@@ -51,19 +54,32 @@ const quickDetail = document.querySelector("#quick-detail");
 const installDialog = document.querySelector("#install-dialog");
 const installButton = document.querySelector("#install-button");
 const importInput = document.querySelector("#import-input");
+const assistantToggle = document.querySelector("#assistant-toggle");
+const assistantPanel = document.querySelector("#assistant-panel");
+const assistantClose = document.querySelector("#assistant-close");
+const assistantForm = document.querySelector("#assistant-form");
+const assistantInput = document.querySelector("#assistant-input");
+const assistantMessages = document.querySelector("#assistant-messages");
 
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const savedCompleted = saved?.completed && typeof saved.completed === "object" ? saved.completed : {};
+    const completed = Number(saved?.schema) >= 2
+      ? savedCompleted
+      : Object.fromEntries(Object.entries(savedCompleted).filter(([, value]) => value === true));
     return {
       ...DEFAULT_STATE,
       ...(saved && typeof saved === "object" ? saved : {}),
-      completed: { ...DEFAULT_STATE.completed, ...(saved?.completed || {}) },
+      schema: DEFAULT_STATE.schema,
+      completed: { ...DEFAULT_STATE.completed, ...completed },
+      completedAt: { ...DEFAULT_STATE.completedAt, ...(saved?.completedAt || {}) },
       applicationStatuses: { ...DEFAULT_STATE.applicationStatuses, ...(saved?.applicationStatuses || {}) },
       dsa: { ...DEFAULT_STATE.dsa, ...(saved?.dsa || {}) },
       localItems: Array.isArray(saved?.localItems) ? saved.localItems : [],
       applications: Array.isArray(saved?.applications) ? saved.applications : [],
       inbox: Array.isArray(saved?.inbox) ? saved.inbox : [],
+      assistantMessages: Array.isArray(saved?.assistantMessages) ? saved.assistantMessages.slice(-12) : [],
     };
   } catch {
     return structuredClone(DEFAULT_STATE);
@@ -109,6 +125,95 @@ function addDays(isoDate, amount) {
   const date = dateAtNoon(isoDate);
   date.setUTCDate(date.getUTCDate() + amount);
   return localISODate(date, TIMEZONE);
+}
+
+function inferAssistantDate(message) {
+  const text = message.toLowerCase();
+  const today = localISODate(new Date(), TIMEZONE);
+  if (/\btoday\b/.test(text)) return today;
+  if (/\btomorrow\b/.test(text)) return addDays(today, 1);
+
+  const iso = text.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+  if (iso) return iso[1];
+
+  const months = {
+    jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3,
+    apr: 4, april: 4, may: 5, jun: 6, june: 6, jul: 7, july: 7,
+    aug: 8, august: 8, sep: 9, sept: 9, september: 9, oct: 10,
+    october: 10, nov: 11, november: 11, dec: 12, december: 12,
+  };
+  const namedDate = text.match(/\b(\d{1,2})\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)(?:\s+(20\d{2}))?\b/);
+  if (namedDate) {
+    const year = Number(namedDate[3] || today.slice(0, 4));
+    const month = months[namedDate[2]];
+    const day = Number(namedDate[1]);
+    if (month && day >= 1 && day <= 31) return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  }
+
+  const weekdays = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
+  const weekday = Object.keys(weekdays).find((day) => new RegExp(`\\b${day}\\b`).test(text));
+  if (weekday) {
+    const currentDay = dateAtNoon(today).getUTCDay();
+    let difference = (weekdays[weekday] - currentDay + 7) % 7;
+    if (difference === 0) difference = 7;
+    return addDays(today, difference);
+  }
+  return "";
+}
+
+function inferAssistantArea(message) {
+  const text = message.toLowerCase();
+  if (/golden jubilee|\bgj\b|\bdj\b/.test(text)) return "Golden Jubilee";
+  if (/flight|train|hotel|stay|airport|travel|trip|ticket|home journey/.test(text)) return "Travel";
+  if (/resume|job|career|interview|application|apply|recruit/.test(text)) return "Career";
+  if (/hackathon|finale|demo|pitch|devfolio/.test(text)) return "Hackathon";
+  if (/quiz|course|class|assignment|presentation|stochastic|cs6103|operation analysis|vng|rl slp/.test(text)) return "Academics";
+  if (/dsa|machine learning|\bml\b|deep learning|\bdl\b|statistics|prep|practice|research paper/.test(text)) return "Prep";
+  return "Personal";
+}
+
+function assistantTaskTitle(message) {
+  const weekdayPattern = "monday|tuesday|wednesday|thursday|friday|saturday|sunday";
+  const monthPattern = "jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?";
+  const cleaned = message
+    .replace(/^\s*(?:please\s+)?(?:add|create)(?:\s+(?:a|this))?(?:\s+(?:task|reminder))?\s*[:,-]?\s*/i, "")
+    .replace(/^\s*remind me to\s+/i, "")
+    .replace(/\b(?:by|on)?\s*(?:today|tomorrow)\b/ig, "")
+    .replace(new RegExp(`\\b(?:by|on)?\\s*(?:${weekdayPattern})\\b`, "ig"), "")
+    .replace(new RegExp(`\\b(?:by|on)?\\s*\\d{1,2}\\s+(?:${monthPattern})(?:\\s+20\\d{2})?\\b`, "ig"), "")
+    .replace(/\b(?:by|on)?\s*20\d{2}-\d{2}-\d{2}\b/ig, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/[\s,.-]+$/, "")
+    .trim();
+  return cleaned || message.trim();
+}
+
+function parseAssistantTask(message) {
+  return {
+    title: assistantTaskTitle(message),
+    date: inferAssistantDate(message),
+    area: inferAssistantArea(message),
+    kind: /\burgent\b|\bdeadline\b|\bdue\b/i.test(message) ? "Deadline" : "Task",
+  };
+}
+
+function renderAssistant() {
+  const messages = state.assistantMessages || [];
+  const welcome = `<div class="assistant-message is-assistant">Tell me one task in a normal sentence. I can recognize basic dates such as today, tomorrow, Friday, 25 Aug, or 2026-08-25.</div>`;
+  assistantMessages.innerHTML = messages.length
+    ? messages.map((message) => `<div class="assistant-message is-${message.role === "user" ? "user" : "assistant"}">${escapeHTML(message.text)}</div>`).join("")
+    : welcome;
+  assistantMessages.scrollTop = assistantMessages.scrollHeight;
+}
+
+function setAssistantOpen(open) {
+  assistantPanel.hidden = !open;
+  assistantToggle.hidden = open;
+  assistantToggle.setAttribute("aria-expanded", String(open));
+  if (open) {
+    renderAssistant();
+    requestAnimationFrame(() => assistantInput.focus());
+  }
 }
 
 function dateOnly(value) {
@@ -168,11 +273,23 @@ function statusClass(value = "") {
 }
 
 function effectiveTaskStatus(task) {
-  return state.completed[task.id] ? "Done" : task.status || "Open";
+  if (Object.prototype.hasOwnProperty.call(state.completed, task.id)) {
+    return state.completed[task.id] ? "Done" : "Open";
+  }
+  return task.status || "Open";
 }
 
 function isDone(task) {
   return effectiveTaskStatus(task).toLowerCase() === "done";
+}
+
+function sourceTaskDone(task) {
+  return (task.status || "Open").toLowerCase() === "done";
+}
+
+function taskStatusChanges() {
+  return allTasks().filter((task) => Object.prototype.hasOwnProperty.call(state.completed, task.id)
+    && Boolean(state.completed[task.id]) !== sourceTaskDone(task));
 }
 
 function allTasks() {
@@ -205,11 +322,15 @@ function openTasks(tasks = allTasks()) {
   return tasks.filter((task) => !isDone(task)).sort((a, b) => taskScore(a) - taskScore(b));
 }
 
-function taskRow(task, { showArea = true } = {}) {
+function taskRow(task, { showArea = true, completionView = false } = {}) {
   const done = isDone(task);
   const due = dueInfo(task.due);
   const link = safeURL(task.link);
   const action = task.next_action || task.notes || "";
+  const completedAt = state.completedAt[task.id];
+  const completionDetail = completedAt
+    ? formatDate(completedAt)
+    : sourceTaskDone(task) ? "Published plan" : "This app";
   return `
     <article class="task-row ${done ? "is-done" : ""}">
       <button class="check-button ${done ? "is-checked" : ""}" type="button" data-task-id="${id(task.id)}" aria-label="${done ? "Mark incomplete" : "Mark complete"}: ${escapeHTML(task.task)}" aria-pressed="${done}">✓</button>
@@ -223,8 +344,8 @@ function taskRow(task, { showArea = true } = {}) {
         </div>
       </div>
       <div class="task-side">
-        <strong>${escapeHTML(due.label)}</strong>
-        <span>${escapeHTML(formatDate(task.due))}</span>
+        <strong>${escapeHTML(completionView ? "Completed" : due.label)}</strong>
+        <span>${escapeHTML(completionView ? completionDetail : formatDate(task.due))}</span>
       </div>
     </article>`;
 }
@@ -385,11 +506,36 @@ function renderWeek() {
         <div class="section-heading"><div><span class="eyebrow">Unscheduled or later</span><h3>Nothing quietly disappears</h3></div></div>
         <div class="task-list">${openTasks().filter((task) => !dates.includes(dateOnly(task.due))).slice(0, 8).map((task) => taskRow(task)).join("")}</div>
       </article>
-    </section>`;
+  </section>`;
+}
+
+function renderCompleted() {
+  const tasks = allTasks()
+    .filter(isDone)
+    .sort((a, b) => {
+      const aTime = state.completedAt[a.id] ? new Date(state.completedAt[a.id]).getTime() : 0;
+      const bTime = state.completedAt[b.id] ? new Date(state.completedAt[b.id]).getTime() : 0;
+      if (aTime !== bTime) return bTime - aTime;
+      return taskScore(a) - taskScore(b);
+    });
+  const deviceOnly = tasks.filter((task) => state.completed[task.id] === true && !sourceTaskDone(task)).length;
+  const published = tasks.length - deviceOnly;
+  return `<section class="view completed-view">
+    <div class="page-intro"><div><span class="eyebrow">Visible progress</span><h2>Done does not mean disappeared.</h2><p>Every completed task stays here. Tap its green check again if it needs to return to your open plan.</p></div></div>
+    <div class="strip-grid">
+      <article class="mini-card"><span class="area-pill">Total</span><h3>${tasks.length} completed</h3><p>Visible in this app right now.</p></article>
+      <article class="mini-card"><span class="area-pill">Published</span><h3>${published} shared</h3><p>Stored in MANAGER.md and visible wherever the manager opens.</p></article>
+      <article class="mini-card"><span class="area-pill">This app only</span><h3>${deviceOnly} waiting to sync</h3><p>Use Inbox & sync to send these check-offs to Codex.</p></article>
+    </div>
+    <article class="card card-pad" style="margin-top:16px">
+      <div class="section-heading"><div><span class="eyebrow">Completion history</span><h3>Your finished work</h3></div>${deviceOnly ? `<button class="button button-quiet button-small" type="button" data-nav="inbox">Sync completions</button>` : ""}</div>
+      <div class="task-list">${tasks.length ? tasks.map((task) => taskRow(task, { completionView: true })).join("") : `<div class="empty-state"><strong>No completed tasks yet.</strong><p>When you check something off, it will move here instead of vanishing.</p></div>`}</div>
+    </article>
+  </section>`;
 }
 
 function prepCard(item) {
-  const done = state.completed[item.id] || item.status?.toLowerCase() === "done";
+  const done = isDone(item);
   const isDsa = item.id === "habit-dsa";
   return `<article class="card prep-card ${done ? "is-done" : ""}">
     <span class="status-pill ${statusClass(done ? "Done" : item.status)}">${escapeHTML(done ? "Done" : item.track)}</span>
@@ -591,7 +737,7 @@ function renderGoldenJubilee() {
 }
 
 function localChangeCount() {
-  return Object.values(state.completed).filter(Boolean).length
+  return taskStatusChanges().length
     + Object.keys(state.applicationStatuses).length
     + state.localItems.length
     + state.applications.length
@@ -609,6 +755,14 @@ function renderInbox() {
         <div class="section-heading"><div><span class="eyebrow">Default workflow</span><h3>One message is enough</h3></div><button class="button button-quiet button-small" type="button" data-copy-template>Copy starter</button></div>
         <div class="intent-example">Add these to my manager and publish: [paste anything here—tasks, an email, application update, rejection, hackathon, course date, travel plan, or Golden Jubilee work].</div>
         <p class="quiet-note">Dates and structure are optional. Codex extracts what is known, records missing facts without inventing them, runs the checks, pushes to GitHub, and waits for Pages to update.</p>
+      </article>
+      <article class="card card-pad span-12">
+        <div class="section-heading"><div><span class="eyebrow">Website ↔ Dock app</span><h3>What is actually linked?</h3></div></div>
+        <dl class="info-list">
+          <div class="info-row"><dt>Published plan</dt><dd><strong>Linked.</strong> Tasks and dates in MANAGER.md update on both the website and Safari Dock app after deployment and refresh.</dd></div>
+          <div class="info-row"><dt>Check-offs and DSA</dt><dd><strong>Local.</strong> Treat Safari and the Dock app as separate storage; a check-off may appear in only the place where you made it.</dd></div>
+          <div class="info-row"><dt>Make it shared</dt><dd>Choose <strong>Copy for Codex</strong>, paste it into this project, and say <strong>publish</strong>. Codex writes the changes into MANAGER.md so every copy can see them.</dd></div>
+        </dl>
       </article>
       <article class="card card-pad capture-card span-7">
         <div class="section-heading"><div><span class="eyebrow">Website fallback</span><h3>What just changed?</h3></div></div>
@@ -654,6 +808,7 @@ function renderInbox() {
 
 function renderMore() {
   const links = [
+    ["✓", "Completed", "Finished tasks stay visible and can be restored", "completed"],
     ["◇", "Hackathons", "Finales, applications, and logistics", "hackathons"],
     ["□", "Academics", "RL SLP, stochastic quiz, and courses", "academics"],
     ["⌁", "Travel", "Flights, accommodation, packing, and journeys", "travel"],
@@ -670,13 +825,14 @@ function renderView() {
   document.title = `${VIEW_TITLES[validView]} · Anant's Week Manager`;
   document.querySelectorAll("[data-nav]").forEach((button) => button.classList.toggle("is-active", button.dataset.nav === validView));
   document.querySelectorAll(".mobile-nav-item").forEach((button) => {
-    const isMoreArea = ["hackathons", "academics", "travel", "golden", "inbox", "more"].includes(validView);
+    const isMoreArea = ["completed", "hackathons", "academics", "travel", "golden", "inbox", "more"].includes(validView);
     button.classList.toggle("is-active", button.dataset.nav === validView || (button.dataset.nav === "more" && isMoreArea));
   });
 
   const renderers = {
     today: renderToday,
     week: renderWeek,
+    completed: renderCompleted,
     prep: renderPrep,
     career: renderCareer,
     hackathons: renderHackathons,
@@ -742,7 +898,8 @@ function downloadFile(content, filename, type = "text/plain;charset=utf-8") {
 }
 
 function codexUpdateMarkdown() {
-  const completed = allTasks().filter((task) => state.completed[task.id]);
+  const completed = allTasks().filter((task) => state.completed[task.id] === true && !sourceTaskDone(task));
+  const reopened = allTasks().filter((task) => state.completed[task.id] === false && sourceTaskDone(task));
   const statusChanges = allApplications().filter((application) => state.applicationStatuses[application.id]);
   const dsaEntries = Object.entries(state.dsa).filter(([, count]) => Number(count) > 0).sort(([a], [b]) => a.localeCompare(b));
   const lines = [
@@ -754,7 +911,11 @@ function codexUpdateMarkdown() {
     "",
     "## Completed",
     "",
-    ...(completed.length ? completed.map((task) => `- [x] ${task.task} (${task.id})`) : ["- None recorded"]),
+    ...(completed.length ? completed.map((task) => `- [x] ${task.task} (${task.id})${state.completedAt[task.id] ? `; completed ${state.completedAt[task.id]}` : ""}`) : ["- None recorded"]),
+    "",
+    "## Reopened",
+    "",
+    ...(reopened.length ? reopened.map((task) => `- [ ] ${task.task} (${task.id})`) : ["- None recorded"]),
     "",
     "## Application status changes",
     "",
@@ -851,9 +1012,19 @@ document.addEventListener("click", async (event) => {
   const taskButton = event.target.closest("[data-task-id]");
   if (taskButton) {
     const taskId = taskButton.dataset.taskId;
-    state.completed[taskId] = !state.completed[taskId];
+    const task = allTasks().find((item) => item.id === taskId);
+    if (!task) return;
+    if (isDone(task)) {
+      if (sourceTaskDone(task)) state.completed[taskId] = false;
+      else delete state.completed[taskId];
+      delete state.completedAt[taskId];
+    } else {
+      if (sourceTaskDone(task)) delete state.completed[taskId];
+      else state.completed[taskId] = true;
+      state.completedAt[taskId] = new Date().toISOString();
+    }
     saveState();
-    showToast(state.completed[taskId] ? "Done. The week just got lighter." : "Moved back to open.");
+    showToast(isDone(task) ? "Done. It is saved in Completed." : "Moved back to open.");
     return;
   }
 
@@ -946,6 +1117,40 @@ document.addEventListener("change", (event) => {
 
 quickKind.addEventListener("change", updateQuickLabels);
 
+assistantToggle.addEventListener("click", () => setAssistantOpen(true));
+assistantClose.addEventListener("click", () => setAssistantOpen(false));
+assistantInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    assistantForm.requestSubmit();
+  }
+});
+
+assistantForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const message = assistantInput.value.trim();
+  if (!message) return;
+  const parsed = parseAssistantTask(message);
+  state.localItems.push({
+    id: uniqueId("chat-task"),
+    kind: parsed.kind,
+    title: parsed.title,
+    date: parsed.date,
+    area: parsed.area,
+    detail: "Added through the local quick assistant",
+    createdAt: new Date().toISOString(),
+  });
+  const dateLabel = parsed.date ? formatDate(parsed.date, { includeTime: false, weekday: true }) : "date not set";
+  state.assistantMessages = [
+    ...(state.assistantMessages || []),
+    { role: "user", text: message },
+    { role: "assistant", text: `Added “${parsed.title}” to ${parsed.area} · ${dateLabel}.` },
+  ].slice(-12);
+  assistantInput.value = "";
+  saveState();
+  renderAssistant();
+});
+
 quickForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const kind = quickKind.value;
@@ -996,15 +1201,22 @@ importInput.addEventListener("change", async () => {
     const parsed = JSON.parse(await file.text());
     const imported = parsed.state || parsed;
     if (!imported || typeof imported !== "object") throw new Error("Invalid backup");
+    const importedCompleted = imported.completed && typeof imported.completed === "object" ? imported.completed : {};
+    const completed = Number(imported.schema) >= 2
+      ? importedCompleted
+      : Object.fromEntries(Object.entries(importedCompleted).filter(([, value]) => value === true));
     state = {
       ...DEFAULT_STATE,
       ...imported,
-      completed: { ...(imported.completed || {}) },
+      schema: DEFAULT_STATE.schema,
+      completed,
+      completedAt: { ...(imported.completedAt || {}) },
       applicationStatuses: { ...(imported.applicationStatuses || {}) },
       dsa: { ...(imported.dsa || {}) },
       localItems: Array.isArray(imported.localItems) ? imported.localItems : [],
       applications: Array.isArray(imported.applications) ? imported.applications : [],
       inbox: Array.isArray(imported.inbox) ? imported.inbox : [],
+      assistantMessages: Array.isArray(imported.assistantMessages) ? imported.assistantMessages.slice(-12) : [],
     };
     saveState();
     showToast("Backup imported.");
@@ -1047,6 +1259,7 @@ async function init() {
     const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
     installButton.hidden = Boolean(standalone);
     renderView();
+    renderAssistant();
   } catch (error) {
     viewRoot.innerHTML = `<section class="source-error"><h2>The plan could not load.</h2><p>${escapeHTML(error.message)}</p><p>If you opened <code>index.html</code> directly, start a local web server instead: <code>python3 -m http.server 8080</code>, then open <code>http://localhost:8080</code>.</p><a href="./MANAGER.md">Open MANAGER.md</a></section>`;
   }
