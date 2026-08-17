@@ -1,0 +1,42 @@
+{
+  "name": "Anant's Week Manager",
+  "short_name": "Week Manager",
+  "description": "A calm command center for Anant's week, deadlines, preparation, applications, academics, and travel.",
+  "start_url": "./?view=today",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f4ee",
+  "theme_color": "#f5f4ee",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today",
+      "short_name": "Today",
+      "url": "./?view=today"
+    },
+    {
+      "name": "Applications",
+      "short_name": "Applications",
+      "url": "./?view=career"
+    },
+    {
+      "name": "Quick inbox",
+      "short_name": "Inbox",
+      "url": "./?view=inbox"
+    }
+  ]
+}

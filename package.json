@@ -1,0 +1,12 @@
+{
+  "name": "anant-week-manager",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "python3 -m http.server 8080",
+    "validate": "node scripts/validate-manager.mjs",
+    "reminder:preview": "node scripts/telegram-reminder.mjs --dry-run --mode=morning",
+    "test": "node --test && node scripts/validate-manager.mjs && node scripts/telegram-reminder.mjs --dry-run --mode=morning --date=2026-08-17"
+  }
+}

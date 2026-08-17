@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f6f5ef" />
+    <meta name="description" content="Anant's calm weekly command center for deadlines, applications, preparation, academics, and travel." />
+    <title>Anant · Week Manager</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#view-root">Skip to your plan</a>
+
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Main navigation">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" role="img">
+              <path d="M9 23c8 0 14-5 14-14-8 0-14 5-14 14Z" />
+              <path d="M9 23c3-4 6-7 11-10" />
+            </svg>
+          </div>
+          <div>
+            <span class="eyebrow">Anant's</span>
+            <strong>Week manager</strong>
+          </div>
+        </div>
+
+        <nav class="desktop-nav">
+          <button class="nav-item is-active" type="button" data-nav="today">
+            <span aria-hidden="true">⌂</span><span>Today</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="week">
+            <span aria-hidden="true">▦</span><span>This week</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="prep">
+            <span aria-hidden="true">◎</span><span>Prep</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="career">
+            <span aria-hidden="true">↗</span><span>Applications</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="hackathons">
+            <span aria-hidden="true">◇</span><span>Hackathons</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="academics">
+            <span aria-hidden="true">□</span><span>Academics</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="life">
+            <span aria-hidden="true">⌁</span><span>Travel & GJ</span>
+          </button>
+          <button class="nav-item" type="button" data-nav="inbox">
+            <span aria-hidden="true">＋</span><span>Inbox & sync</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-note">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span><strong>Local-first</strong><br />Your check-offs stay private on this device.</span>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-title">
+            <span class="eyebrow" id="week-label">17–23 August</span>
+            <h1 id="view-title">Today</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="button button-quiet install-button" id="install-button" type="button" hidden>
+              Install
+            </button>
+            <button class="button button-primary" id="quick-add-button" type="button">
+              <span aria-hidden="true">＋</span> Add something
+            </button>
+          </div>
+        </header>
+
+        <div class="view-scroll" id="view-root" tabindex="-1">
+          <div class="loading-state" id="loading-state" role="status">
+            <span class="loading-leaf" aria-hidden="true"></span>
+            <p>Putting the week in order…</p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <button class="mobile-nav-item is-active" type="button" data-nav="today"><span>⌂</span>Today</button>
+      <button class="mobile-nav-item" type="button" data-nav="week"><span>▦</span>Week</button>
+      <button class="mobile-nav-item" type="button" data-nav="prep"><span>◎</span>Prep</button>
+      <button class="mobile-nav-item" type="button" data-nav="career"><span>↗</span>Apps</button>
+      <button class="mobile-nav-item" type="button" data-nav="more"><span>•••</span>More</button>
+    </nav>
+
+    <dialog class="modal" id="quick-dialog">
+      <form method="dialog" id="quick-form">
+        <div class="modal-heading">
+          <div>
+            <span class="eyebrow">Quick capture</span>
+            <h2 id="quick-dialog-title">Add something</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close">×</button>
+        </div>
+
+        <label class="field">
+          <span>What is it?</span>
+          <select name="kind" id="quick-kind">
+            <option value="Task">Task</option>
+            <option value="Application">Application</option>
+            <option value="Deadline">Deadline</option>
+            <option value="Note">Note / waiting item</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span id="quick-title-label">Title</span>
+          <input name="title" id="quick-title" required maxlength="120" placeholder="e.g. Book the flight home" />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span id="quick-date-label">Due</span>
+            <input name="date" id="quick-date" type="date" />
+          </label>
+          <label class="field">
+            <span>Area</span>
+            <select name="area" id="quick-area">
+              <option>Career</option>
+              <option>Hackathon</option>
+              <option>Prep</option>
+              <option>Academics</option>
+              <option>Travel</option>
+              <option>Leadership</option>
+              <option>Personal</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="field">
+          <span id="quick-detail-label">Next action or detail</span>
+          <textarea name="detail" id="quick-detail" rows="3" maxlength="400" placeholder="The smallest useful next step"></textarea>
+        </label>
+
+        <div class="modal-actions">
+          <button class="button button-quiet" type="button" data-close-dialog>Cancel</button>
+          <button class="button button-primary" type="submit">Save to this device</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal modal-compact" id="install-dialog">
+      <div class="modal-heading">
+        <div>
+          <span class="eyebrow">Desktop access</span>
+          <h2>Keep it one click away</h2>
+        </div>
+        <button class="icon-button" type="button" data-close-dialog aria-label="Close">×</button>
+      </div>
+      <p>In Chrome or Edge, use the install icon in the address bar. In Safari on macOS, choose <strong>File → Add to Dock</strong>. It will open like a small standalone app.</p>
+      <div class="modal-actions">
+        <button class="button button-primary" type="button" data-close-dialog>Got it</button>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <input id="import-input" type="file" accept="application/json" hidden />
+
+    <noscript>
+      <div class="noscript">This manager needs JavaScript for local check-offs. The full plan is still readable in <a href="./MANAGER.md">MANAGER.md</a>.</div>
+    </noscript>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

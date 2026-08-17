@@ -1,0 +1,133 @@
+# Anant's Week Manager
+
+This file is the durable source of truth. Tell Codex what changed in plain language; Codex should update this file, while quick check-offs made on the website stay on that browser until exported.
+
+- Updated: 2026-08-17
+- Timezone: Asia/Kolkata
+- Current week: 2026-08-17 to 2026-08-23
+- Application goal: 25
+- Application stretch: 50
+- DSA daily goal: 5
+
+## Tasks
+
+| ID | Task | Area | Due | Priority | Status | Estimate | Next action | Link | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| et-confirm | Verify ET AI finale attendance form was submitted | Hackathon | 2026-08-17T21:00:00+05:30 | P0 | Open | 10m | Check the submitted response or email the organizers immediately | https://forms.gle/w2GXNCBzozj6M7bM9 | Form deadline was 13 Aug; ignore only if already submitted |
+| akuna-invite | Verify HackerRank invite and challenge access | Career | 2026-08-17T21:30:00+05:30 | P0 | Open | 15m | Check inbox and spam; save the challenge link |  | Do not copy confidential challenge content into this manager |
+| et-travel-in | Arrange travel to Hyderabad before ET AI registration | Travel | 2026-08-18T18:00:00+05:30 | P0 | Open | 30m | Choose arrival plan that reaches T-Hub before 8:00 AM on 25 Aug | https://maps.app.goo.gl/GjcMYQZLDWiXi24eA | Departure city is not recorded yet |
+| et-stay | Decide whether Hyderabad accommodation is needed | Travel | 2026-08-18T18:30:00+05:30 | P0 | Open | 20m | Book a stay for 24 Aug if same-day arrival is unsafe |  | Organizers do not cover travel or accommodation |
+| home-route | Confirm home destination and return airport | Travel | 2026-08-18T19:00:00+05:30 | P0 | Open | 10m | Record destination, baggage, and preferred return date |  | Needed before booking the post-finale flight |
+| home-flight | Book the flight home after ET AI | Travel | 2026-08-19T20:00:00+05:30 | P0 | Open | 30m | Prefer a safely timed late flight or 26 Aug morning after checking airport travel time |  | Finale is expected to end around 6:00 PM on 25 Aug |
+| akuna-prep | Review Akuna overview, instructional video, and prep tips | Career | 2026-08-18T20:30:00+05:30 | P0 | Open | 1h | Read the supplied prep document and block challenge time |  | AI is allowed; all other work must remain individual |
+| resume-external | Finish the ML research resume for external applications | Career | 2026-08-19T18:00:00+05:30 | P0 | Open | 2h | Make one strong base resume, then tailor only the top third |  | Unblocks the weekly application target |
+| et-deck-v1 | Complete ET AI finale deck version 1 | Hackathon | 2026-08-20T21:00:00+05:30 | P0 | Open | 3h | Build a 7–8 minute story with problem, solution, evidence, demo, and close |  | Keep backup PDF and offline copy |
+| goa-apply | Apply to Hacker House Goa 2026 | Hackathon | 2026-08-20T21:30:00+05:30 | P1 | Open | 45m | Submit the Devfolio application and capture any shortlisting task | https://hacker-house-goa-2026.devfolio.co/overview?ref=f66c3dc86d | Personal deadline; official exact close time is not published on the page |
+| gj-budget | Draft Golden Jubilee budget | Leadership | 2026-08-20T22:00:00+05:30 | P1 | Open | 1h | List line items, owners, estimates, and approval gaps |  | Golden Jubilee lead task |
+| pocket-fm-prep | Focused preparation for Pocket FM | Career | 2026-08-21T18:00:00+05:30 | P1 | Open | 2h | Record the stage/date, then prepare only for that format |  | Interview details are still missing |
+| cs6103 | Review the next CS6103 deliverable | Academics | 2026-08-21T20:00:00+05:30 | P2 | Open | 45m | Capture the exact assignment, date, and next step |  | Placeholder deadline for clarification, not the course deadline |
+| gj-atm | Close the Golden Jubilee ATM action | Leadership | 2026-08-21T21:00:00+05:30 | P1 | Open | 45m | Record the required decision and contact the owner |  | Exact scope needs to be added |
+| ml-video | Watch and note the ML video | Academics | 2026-08-21T22:00:00+05:30 | P2 | Open | 45m | Capture three useful points and one follow-up |  | From the original task list |
+| akuna-challenge | Complete and submit the Akuna trading challenge | Career | 2026-08-22T20:00:00+05:30 | P0 | Open | 5–8h | Protect one uninterrupted block and submit well before the hard cutoff |  | Self-imposed finish; hard cutoff is 24 Aug 10:29 AM IST |
+| et-demo-check | Make the ET AI demo failure-safe | Hackathon | 2026-08-22T21:00:00+05:30 | P0 | Open | 2h | Test offline path, backup recording, adapters, and clean laptop setup |  | Bring any additional demonstration materials |
+| stochastic-catchup | Catch up on stochastic and probability material | Academics | 2026-08-22T22:00:00+05:30 | P1 | Open | 2h | Review lecture notes and make a one-page quiz sheet |  | Preparation for the Monday quiz |
+| gj-truth-doc | Finish Golden Jubilee truth document and follow-up | Leadership | 2026-08-22T22:30:00+05:30 | P1 | Open | 1h | Consolidate facts, open decisions, owners, and follow-ups |  | Golden Jubilee lead task |
+| dl-video | Watch and note the DL video | Academics | 2026-08-22T23:00:00+05:30 | P2 | Open | 45m | Capture three useful points and one follow-up |  | From the original task list |
+| applications-week | Submit at least 25 external applications this week | Career | 2026-08-23T20:00:00+05:30 | P0 | Open | Daily | Log every submission; use 5 per day as the operating minimum |  | Stretch goal is 50; quality-fit ML research roles first |
+| rl-slp-prep | Finish Monday RL SLP paper notes and presentation | Academics | 2026-08-23T20:30:00+05:30 | P0 | Open | 4h total | Finalize claim, evidence, limitations, slides, and likely questions |  | Presentation recurs every Monday |
+| operation-analysis | Clarify and advance Operation Analysis work | Academics | 2026-08-23T21:00:00+05:30 | P2 | Open | 1h | Record the real deliverable and complete the first concrete step |  | Exact deadline is missing |
+| stats-video | Watch and note the Stats video | Academics | 2026-08-23T22:00:00+05:30 | P2 | Open | 45m | Connect notes to Monday quiz preparation |  | From the original task list |
+| simulation-details | Capture the Simulation Challenge deadline and next step | Project | 2026-08-19T21:00:00+05:30 | P2 | Open | 15m | Add its link, deadline, team, and required deliverable |  | Details are missing |
+| vng-calendar | Add the VNG course calendar and presentation date | Academics | 2026-08-20T19:00:00+05:30 | P2 | Open | 10m | Share the calendar or date with Codex |  | Presentation date is not known yet |
+| et-rehearse | Rehearse ET AI pitch and Q&A twice | Hackathon | 2026-08-24T18:00:00+05:30 | P0 | Open | 2h | Time one solo run and one hostile Q&A run |  | Presentation 7–8 minutes; Q&A 7–8 minutes |
+| et-pack | Pack the ET AI finale kit | Travel | 2026-08-24T20:00:00+05:30 | P0 | Open | 20m | Pack laptop, charger, ID/Aadhaar, adapters, deck PDF, and demo backup |  | Registration begins at 8:00 AM |
+
+## Events
+
+| ID | Event | Area | Start | End | Status | Location | Link | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| akuna-close | Akuna Virtual Quantitative Trading Challenge closes | Career | 2026-08-24T10:29:00+05:30 | 2026-08-24T10:29:00+05:30 | Confirmed | Online via HackerRank |  | Converted from 23 Aug 2026, 11:59 PM CDT; no extensions |
+| rl-slp-aug24 | Reinforcement Learning SLP presentation | Academics | 2026-08-24 | 2026-08-24 | Recurring | Course venue not recorded |  | Every Monday; exact time needed |
+| stochastic-quiz-aug24 | Stochastic and Probability quiz | Academics | 2026-08-24 | 2026-08-24 | Recurring | Course venue not recorded |  | Every Monday; exact time needed |
+| et-ai-finale | ET AI Hackathon 2.0 Finale | Hackathon | 2026-08-25T08:00:00+05:30 | 2026-08-25T18:00:00+05:30 | Confirmed | The Marvel, 5th Floor, T-Hub Foundation, Plot 1/C, Raidurgam Panmaktha, Hyderabad 500081 | https://maps.app.goo.gl/GjcMYQZLDWiXi24eA | Offline; refreshments and lunch provided; travel and stay are self-funded |
+| go-home | Travel home after ET AI | Travel | 2026-08-26 | 2026-08-26 | Tentative | Destination not recorded |  | Could be a safely timed late flight on 25 Aug after checking transit time |
+| ides-finale | IDES 2.0 Finale | Hackathon | Date not announced | Date not announced | Finalist | Location not announced |  | Update when organizers announce details |
+| goa-hacker-house | Hacker House Goa 2026 | Hackathon | 2026-10-28 | 2026-10-31 | Interested | Goa, India | https://hacker-house-goa-2026.devfolio.co/overview?ref=f66c3dc86d | Offline AI × Crypto builder residency; team size 1–3 |
+
+## Applications
+
+| ID | Company | Role | Status | Applied on | Next action | Follow-up | Link | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| app-databricks | Databricks | Role not recorded | Applied | Date not recorded | Add role/link and check portal or email | 2026-08-24 |  | Existing application |
+| app-salesforce | Salesforce | Role not recorded | Applied | Date not recorded | Add role/link and check portal or email | 2026-08-24 |  | Existing application |
+| app-revolut | Revolut | Role not recorded | Applied | Date not recorded | Add role/link and check portal or email | 2026-08-24 |  | Existing application |
+| app-akuna | Akuna Capital | 2027 quantitative role pipeline | Challenge | Date not recorded | Complete Virtual Quantitative Trading Challenge | 2026-08-22 |  | Top performers may enter an expedited process; invitation is discretionary |
+
+## Rejections
+
+| ID | Company | Role | Rejected on | Stage | Reason or signal | Recovery action | Reapply after | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+## Hackathons
+
+| ID | Name | Status | Apply by | Official deadline | Starts | Ends | Next action | Link | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| hack-et-ai | ET AI Hackathon 2.0 | Finalist | Applied | Closed | 2026-08-25T08:00:00+05:30 | 2026-08-25T18:00:00+05:30 | Prepare deck, demo, travel, and timed Q&A | https://maps.app.goo.gl/GjcMYQZLDWiXi24eA | Venue is T-Hub, Hyderabad |
+| hack-ides | IDES 2.0 | Finalist | Applied | Closed | Date not announced | Date not announced | Watch for the finale date and venue |  | Date not announced |
+| hack-goa | Hacker House Goa 2026 | Must apply | 2026-08-20T21:30:00+05:30 | Exact time not published | 2026-10-28 | 2026-10-31 | Apply, then capture every shortlisting task deadline | https://hacker-house-goa-2026.devfolio.co/overview?ref=f66c3dc86d | Free registration; offline in Goa; team size 1–3 |
+
+## Recurring
+
+| ID | Commitment | Area | Schedule | Target | Reminder | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| habit-dsa | DSA practice | Skill | Daily | 5 questions | 7:00 PM | Four is acceptable on a deadline-heavy day; never let it become zero |
+| habit-apps | External applications | Career | Daily this week | 5 minimum; 8 stretch | 11:00 AM and 6:00 PM | Weekly goal 25; stretch 50; log every submission |
+| habit-rl | RL SLP presentation | Academics | Every Monday | One paper presentation | Sunday 6:00 PM | Prepare across the week instead of starting Sunday |
+| habit-rl-prep | RL research paper preparation | Academics | Tuesday to Sunday | One concrete prep step daily | 8:00 PM | Choose, skim, deep-read, outline, slide, rehearse |
+| habit-stochastic | Stochastic and Probability quiz | Academics | Every Monday | Quiz-ready by Sunday | Saturday 10:00 AM and Sunday 6:00 PM | Review lecture, solve practice, make a one-page sheet |
+| habit-review | Weekly reset | Planning | Every Sunday | 20 minutes | 8:30 PM | Close loops, move unfinished work, and set only three Monday priorities |
+
+## Interview and ML Prep
+
+| ID | Track | Item | Cadence | Status | Next checkpoint | Evidence of done |
+| --- | --- | --- | --- | --- | --- | --- |
+| ml-video | Learn | ML video | Once this week | Open | 2026-08-21 | Notes with three takeaways and one question |
+| dl-video | Learn | DL video | Once this week | Open | 2026-08-22 | Notes with three takeaways and one question |
+| stats-video | Learn | Statistics video | Once this week | Open | 2026-08-23 | Notes connected to stochastic quiz topics |
+| habit-dsa | Practice | DSA problem solving | Daily | Active | 5 questions today | Solved count plus one mistake pattern |
+| pocket-fm-prep | Interview | Pocket FM focused preparation | This week | Open | Record the stage and date first | One-page role brief and format-specific practice |
+| akuna-prep | Quant | Akuna challenge preparation | Before 2026-08-22 | Open | Prep tips and instructional video reviewed | Protected 5–8 hour block plus submitted challenge |
+| resume-external | Career | ML research role preparation | Daily this week | Active | Resume ready by 2026-08-19 | Tailored resume, role match note, and logged application |
+| rl-slp-prep | Research | RL SLP paper reading and presentation | Tuesday to Sunday | Active | Ready by Sunday evening | Claim, evidence, limitations, slides, and Q&A notes |
+
+## Weekly Rhythm
+
+| ID | Day | RL SLP | Stochastic quiz | Career | Minimum viable day |
+| --- | --- | --- | --- | --- | --- |
+| rhythm-mon | Monday | Present and capture feedback | Take quiz and note weak topics | 4 applications | Presentation, quiz, 4 DSA |
+| rhythm-tue | Tuesday | Choose the paper and define its central claim | Organize new lecture notes | 5 applications | One paper chosen, 5 applications, 5 DSA |
+| rhythm-wed | Wednesday | First read and vocabulary pass | Review definitions | 5 applications | 30-minute paper read, 5 applications, 5 DSA |
+| rhythm-thu | Thursday | Deep read methods and results | Solve two representative problems | 5 applications | Evidence notes, 5 applications, 5 DSA |
+| rhythm-fri | Friday | Build the story and outline | Mark unresolved quiz topics | 5 applications | Outline, 5 applications, 5 DSA |
+| rhythm-sat | Saturday | Draft slides | Main practice block | 5 applications | Slides v1, practice set, 5 DSA |
+| rhythm-sun | Sunday | Rehearse and prepare Q&A | One-page recap and final practice | Close the weekly gap | Rehearsal, recap, weekly reset |
+
+## Waiting For
+
+| ID | Missing information | Area | Why it matters | Next check |
+| --- | --- | --- | --- | --- |
+| wait-home | Home destination, departure city, baggage, and preferred date | Travel | Required to book ET AI travel safely | 2026-08-18 |
+| wait-vng | VNG course calendar, presentation date, and time | Academics | Needed for presentation prep reminders and calendar export | 2026-08-20 |
+| wait-ides | IDES 2.0 finale date, venue, and format | Hackathon | Prevents travel and preparation planning | Weekly |
+| wait-pocketfm | Pocket FM role, interview stage, date, and format | Career | Makes focused preparation possible | 2026-08-18 |
+| wait-courses | CS6103 and Operation Analysis deliverables and deadlines | Academics | Current tasks are only placeholders | 2026-08-21 |
+| wait-simulation | Simulation Challenge link, deadline, team, and deliverable | Project | Cannot prioritize it safely without a deadline | 2026-08-19 |
+| wait-apps | Roles, application dates, and links for Databricks, Salesforce, and Revolut | Career | Needed for follow-ups and reapplication history | 2026-08-23 |
+
+## Operating Rules
+
+1. The Today view shows at most three must-do items before everything else.
+2. P0 means a real deadline, travel dependency, or high-cost miss. P1 protects important progress. P2 is movable.
+3. Website check-offs are intentionally local and fast. Export or copy the Codex update when you want them written back here.
+4. Akuna challenge content is confidential. Track only preparation, time, and submission status.
+5. When a rejection arrives, record the stage, evidence, follow-up/recovery action, and earliest sensible reapplication date—never just the word “rejected.”

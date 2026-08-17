@@ -1,0 +1,7 @@
+interface:
+  display_name: "Sharpen Intent"
+  short_description: "Interrogate vague intent until it is actionable"
+  default_prompt: "Use $sharpen-intent to pressure-test this idea until its intent is unambiguous."
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,47 @@
+name: Telegram reminders
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+    - cron: "30 13 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Reminder to send
+        required: true
+        default: morning
+        type: choice
+        options:
+          - morning
+          - evening
+
+permissions:
+  contents: read
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      REQUESTED_MODE: ${{ inputs.mode }}
+      EVENT_SCHEDULE: ${{ github.event.schedule }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Choose reminder mode
+        shell: bash
+        run: |
+          if [[ -n "$REQUESTED_MODE" ]]; then
+            echo "REMINDER_MODE=$REQUESTED_MODE" >> "$GITHUB_ENV"
+          elif [[ "$EVENT_SCHEDULE" == "30 13 * * *" ]]; then
+            echo "REMINDER_MODE=evening" >> "$GITHUB_ENV"
+          else
+            echo "REMINDER_MODE=morning" >> "$GITHUB_ENV"
+          fi
+      - name: Send Telegram digest
+        run: node scripts/telegram-reminder.mjs --mode="$REMINDER_MODE"
