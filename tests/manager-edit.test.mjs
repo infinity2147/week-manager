@@ -354,3 +354,27 @@ test("clearRanks empties the table but keeps the section", () => {
 test("readRanks returns nothing when the section is absent", () => {
   assert.deepEqual(readRanks(markdown), {});
 });
+
+test("deleting a ranked task also removes its order row", () => {
+  const ranked = applyOperations(markdown, [{ op: "setRank", id: "ml-video", rank: 3 }], { today: TODAY });
+  assert.deepEqual(readRanks(ranked), { "ml-video": 3 });
+  const deleted = applyOperations(ranked, [{ op: "deleteTask", id: "ml-video" }], { today: TODAY });
+  assert.deepEqual(readRanks(deleted), {}, "a deleted task must not leave a dangling rank");
+});
+
+test("deleting a ranked event also removes its order row", () => {
+  const ranked = applyOperations(markdown, [{ op: "setRank", id: "go-home", rank: 2 }], { today: TODAY });
+  const deleted = applyOperations(ranked, [{ op: "deleteEvent", id: "go-home" }], { today: TODAY });
+  assert.deepEqual(readRanks(deleted), {});
+});
+
+test("deleting an unranked item leaves other ranks untouched", () => {
+  const ranked = applyOperations(markdown, [{ op: "setRank", id: "ml-video", rank: 3 }], { today: TODAY });
+  const deleted = applyOperations(ranked, [{ op: "deleteTask", id: "dl-video" }], { today: TODAY });
+  assert.deepEqual(readRanks(deleted), { "ml-video": 3 });
+});
+
+test("deleting from a file with no Order section does not create one", () => {
+  const deleted = applyOperations(markdown, [{ op: "deleteTask", id: "ml-video" }], { today: TODAY });
+  assert.equal(findTable(deleted, "order"), null);
+});
