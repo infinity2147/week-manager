@@ -291,3 +291,66 @@ test("the first row written into a previously empty table round-trips", () => {
     assert.equal(replaceRows(next, name, readRows(next, name)), next, `${name} did not round-trip`);
   }
 });
+
+import { ensureOrderSection, readRanks } from "../lib/manager-edit.js";
+
+test("creates the Order section immediately before Operating Rules", () => {
+  const next = ensureOrderSection(markdown);
+  assert.match(next, /\n## Order\n\n\| ID \| Rank \|\n\| --- \| --- \|\n\n## Operating Rules/);
+  assert.deepEqual(readRows(next, "order"), []);
+});
+
+test("creating the Order section twice is a no-op", () => {
+  const once = ensureOrderSection(markdown);
+  assert.equal(ensureOrderSection(once), once);
+});
+
+test("creating the Order section changes nothing else", () => {
+  const next = ensureOrderSection(markdown);
+  for (const name of SECTIONS) {
+    assert.deepEqual(readRows(next, name), readRows(markdown, name));
+  }
+});
+
+test("sets a rank, creating the section on demand", () => {
+  const next = applyOperations(markdown, [{ op: "setRank", id: "gj-budget", rank: 2.5 }], { today: TODAY });
+  assert.deepEqual(readRanks(next), { "gj-budget": 2.5 });
+});
+
+test("setting a rank twice replaces rather than duplicates", () => {
+  const next = applyOperations(markdown, [
+    { op: "setRank", id: "gj-budget", rank: 2.5 },
+    { op: "setRank", id: "gj-budget", rank: 9 },
+  ], { today: TODAY });
+  assert.deepEqual(readRanks(next), { "gj-budget": 9 });
+  assert.equal(readRows(next, "order").length, 1);
+});
+
+test("ranks are stored sorted so diffs stay stable", () => {
+  const next = applyOperations(markdown, [
+    { op: "setRank", id: "gj-budget", rank: 9 },
+    { op: "setRank", id: "ml-video", rank: 2 },
+    { op: "setRank", id: "dl-video", rank: 5 },
+  ], { today: TODAY });
+  assert.deepEqual(readRows(next, "order").map((row) => row.id), ["ml-video", "dl-video", "gj-budget"]);
+});
+
+test("rejects a rank that is not a finite number", () => {
+  assert.throws(() => applyOperations(markdown, [{ op: "setRank", id: "gj-budget", rank: "soon" }], { today: TODAY }), /rank must be a finite number/);
+  assert.throws(() => applyOperations(markdown, [{ op: "setRank", id: "gj-budget", rank: Infinity }], { today: TODAY }), /rank must be a finite number/);
+});
+
+test("rejects a rank for an item that does not exist", () => {
+  assert.throws(() => applyOperations(markdown, [{ op: "setRank", id: "ghost", rank: 1 }], { today: TODAY }), /no task or event with ID ghost/);
+});
+
+test("clearRanks empties the table but keeps the section", () => {
+  const ranked = applyOperations(markdown, [{ op: "setRank", id: "gj-budget", rank: 2 }], { today: TODAY });
+  const cleared = applyOperations(ranked, [{ op: "clearRanks" }], { today: TODAY });
+  assert.deepEqual(readRanks(cleared), {});
+  assert.ok(findTable(cleared, "order"));
+});
+
+test("readRanks returns nothing when the section is absent", () => {
+  assert.deepEqual(readRanks(markdown), {});
+});
