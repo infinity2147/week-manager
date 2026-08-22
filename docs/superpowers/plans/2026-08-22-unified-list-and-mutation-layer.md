@@ -1162,7 +1162,7 @@ Add `schema: 4` to `DEFAULT_STATE`, add `ranks: {}`, and **replace** `scheduleOv
 ```js
 export const DEFAULT_STATE = {
   schema: 4,
-  view: "list",
+  view: "today",
   completed: {},
   completedAt: {},
   overrides: { tasks: {}, events: {} },
@@ -1175,6 +1175,9 @@ export const DEFAULT_STATE = {
   inbox: [],
 };
 ```
+
+Leave `view` as `"today"` for now — the `list` view does not exist until Task 8,
+and Task 12 switches the default once it does.
 
 One map, not two. Task 10 stores full field edits in it, and a date-only edit is
 just an edit whose only key is `due`. In `loadState`, migrate any schema-3 data
@@ -1670,7 +1673,7 @@ git commit -m "Add drag, button, and keyboard reordering to the list"
 - Consumes: `allTasks`, `allEvents`, `sourceTasks`, `section`, `state`, `saveState` from `app/store.js`
 - Produces: `openEditor(kind, itemId)`, `attachEditor()` from `app/editor.js`
 
-Edits still persist to `state.scheduleOverrides` and a new `state.fieldOverrides` in `localStorage`. Phase D replaces both with `POST /apply`.
+Edits persist to the single `state.overrides` map in `localStorage`, established in Task 7. Phase D replaces that with `POST /apply`.
 
 - [ ] **Step 1: Replace the dialog markup**
 
