@@ -4,9 +4,29 @@ import {
   parseManagerMarkdown,
   startOfLocalWeek,
 } from "./lib/manager-data.js";
+import {
+  state,
+  manager,
+  DEFAULT_STATE,
+  TIMEZONE,
+  migrateOverrides,
+  section,
+  saveState,
+  setRenderer,
+  setManager,
+  allTasks,
+  allEvents,
+  sourceTasks,
+  isDone,
+  sourceTaskDone,
+  effectiveTaskStatus,
+  todayKey,
+  openListItems,
+  ranks,
+  setRank,
+  clearRanks,
+} from "./app/store.js";
 
-const STORAGE_KEY = "anant-week-manager-v1";
-const TIMEZONE = "Asia/Kolkata";
 const STATUS_OPTIONS = ["Interested", "Applied", "Challenge", "Interview", "Offer", "Rejected", "Withdrawn"];
 const VIEW_TITLES = {
   today: "Today",
@@ -23,22 +43,6 @@ const VIEW_TITLES = {
   more: "More",
 };
 
-const DEFAULT_STATE = {
-  schema: 3,
-  view: "today",
-  completed: {},
-  completedAt: {},
-  scheduleOverrides: { tasks: {}, events: {} },
-  dayPlans: {},
-  applicationStatuses: {},
-  dsa: {},
-  localItems: [],
-  applications: [],
-  inbox: [],
-};
-
-let manager = { metadata: {}, sections: {} };
-let state = loadState();
 let applicationFilter = "All";
 let installPrompt = null;
 let toastTimer = null;
@@ -69,46 +73,6 @@ const eventStartTime = document.querySelector("#event-start-time");
 const eventEndDate = document.querySelector("#event-end-date");
 const eventEndTime = document.querySelector("#event-end-time");
 const resetScheduleButton = document.querySelector("#reset-schedule-button");
-
-function loadState() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    const savedState = saved && typeof saved === "object" ? { ...saved } : {};
-    delete savedState.assistantMessages;
-    const savedCompleted = saved?.completed && typeof saved.completed === "object" ? saved.completed : {};
-    const completed = Number(saved?.schema) >= 2
-      ? savedCompleted
-      : Object.fromEntries(Object.entries(savedCompleted).filter(([, value]) => value === true));
-    return {
-      ...DEFAULT_STATE,
-      ...savedState,
-      schema: DEFAULT_STATE.schema,
-      completed: { ...DEFAULT_STATE.completed, ...completed },
-      completedAt: { ...DEFAULT_STATE.completedAt, ...(saved?.completedAt || {}) },
-      scheduleOverrides: {
-        tasks: { ...(saved?.scheduleOverrides?.tasks || {}) },
-        events: { ...(saved?.scheduleOverrides?.events || {}) },
-      },
-      dayPlans: saved?.dayPlans && typeof saved.dayPlans === "object" ? saved.dayPlans : {},
-      applicationStatuses: { ...DEFAULT_STATE.applicationStatuses, ...(saved?.applicationStatuses || {}) },
-      dsa: { ...DEFAULT_STATE.dsa, ...(saved?.dsa || {}) },
-      localItems: Array.isArray(saved?.localItems) ? saved.localItems : [],
-      applications: Array.isArray(saved?.applications) ? saved.applications : [],
-      inbox: Array.isArray(saved?.inbox) ? saved.inbox : [],
-    };
-  } catch {
-    return structuredClone(DEFAULT_STATE);
-  }
-}
-
-function saveState({ render = true } = {}) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  if (render) renderView();
-}
-
-function section(name) {
-  return manager.sections[name] || [];
-}
 
 function escapeHTML(value = "") {
   return String(value)
@@ -198,57 +162,9 @@ function statusClass(value = "") {
   return `status-${normalized || "unknown"}`;
 }
 
-function effectiveTaskStatus(task) {
-  if (Object.prototype.hasOwnProperty.call(state.completed, task.id)) {
-    return state.completed[task.id] ? "Done" : "Open";
-  }
-  return task.status || "Open";
-}
-
-function isDone(task) {
-  return effectiveTaskStatus(task).toLowerCase() === "done";
-}
-
-function sourceTaskDone(task) {
-  return (task.status || "Open").toLowerCase() === "done";
-}
-
 function taskStatusChanges() {
   return allTasks().filter((task) => Object.prototype.hasOwnProperty.call(state.completed, task.id)
     && Boolean(state.completed[task.id]) !== sourceTaskDone(task));
-}
-
-function sourceTasks() {
-  const localTasks = state.localItems
-    .filter((item) => item.kind !== "Note")
-    .map((item) => ({
-      id: item.id,
-      task: item.title,
-      area: item.area || item.kind,
-      due: item.date || "Date needed",
-      priority: item.kind === "Deadline" ? "P0" : "P1",
-      status: "Open",
-      estimate: "",
-      next_action: item.detail || "Decide the next action",
-      link: "",
-      notes: "Added from the website",
-      local: true,
-    }));
-  return [...section("tasks"), ...localTasks];
-}
-
-function allTasks() {
-  return sourceTasks().map((task) => {
-    const override = state.scheduleOverrides.tasks[task.id];
-    return override ? { ...task, ...override, schedule_local: true } : task;
-  });
-}
-
-function allEvents() {
-  return section("events").map((event) => {
-    const override = state.scheduleOverrides.events[event.id];
-    return override ? { ...event, ...override, schedule_local: true } : event;
-  });
 }
 
 function scheduleParts(value = "") {
@@ -261,11 +177,11 @@ function composeSchedule(date, time) {
 }
 
 function hasScheduleOverride(kind, itemId) {
-  return Object.prototype.hasOwnProperty.call(state.scheduleOverrides[kind], itemId);
+  return Object.prototype.hasOwnProperty.call(state.overrides[kind], itemId);
 }
 
 function scheduleOverrideCount() {
-  return Object.keys(state.scheduleOverrides.tasks).length + Object.keys(state.scheduleOverrides.events).length;
+  return Object.keys(state.overrides.tasks).length + Object.keys(state.overrides.events).length;
 }
 
 function eventEditButton(eventId, label = "Edit date") {
@@ -316,10 +232,6 @@ function taskScore(task) {
 
 function openTasks(tasks = allTasks()) {
   return tasks.filter((task) => !isDone(task)).sort((a, b) => taskScore(a) - taskScore(b));
-}
-
-function todayKey() {
-  return localISODate(new Date(), TIMEZONE);
 }
 
 function currentDayPlanIds() {
@@ -1004,11 +916,11 @@ function codexUpdateMarkdown() {
   const reopened = allTasks().filter((task) => state.completed[task.id] === false && sourceTaskDone(task));
   const statusChanges = allApplications().filter((application) => state.applicationStatuses[application.id]);
   const dsaEntries = Object.entries(state.dsa).filter(([, count]) => Number(count) > 0).sort(([a], [b]) => a.localeCompare(b));
-  const taskScheduleChanges = Object.entries(state.scheduleOverrides.tasks).map(([taskId, override]) => {
+  const taskScheduleChanges = Object.entries(state.overrides.tasks).map(([taskId, override]) => {
     const task = sourceTasks().find((item) => item.id === taskId);
     return `- Task: ${task?.task || taskId} (${taskId}) — due ${override.due}`;
   });
-  const eventScheduleChanges = Object.entries(state.scheduleOverrides.events).map(([eventId, override]) => {
+  const eventScheduleChanges = Object.entries(state.overrides.events).map(([eventId, override]) => {
     const event = section("events").find((item) => item.id === eventId);
     return `- Event: ${event?.event || eventId} (${eventId}) — start ${override.start}; end ${override.end}`;
   });
@@ -1290,8 +1202,8 @@ scheduleForm.addEventListener("submit", (event) => {
     const due = composeSchedule(taskDueDate.value, taskDueTime.value);
     const source = sourceTasks().find((task) => task.id === itemId);
     if (!source) return;
-    if (due === source.due) delete state.scheduleOverrides.tasks[itemId];
-    else state.scheduleOverrides.tasks[itemId] = { due };
+    if (due === source.due) delete state.overrides.tasks[itemId];
+    else state.overrides.tasks[itemId] = { due };
   } else {
     eventStartTime.setCustomValidity("");
     eventEndDate.setCustomValidity("");
@@ -1319,8 +1231,8 @@ scheduleForm.addEventListener("submit", (event) => {
 
     const source = section("events").find((item) => item.id === itemId);
     if (!source) return;
-    if (start === source.start && end === source.end) delete state.scheduleOverrides.events[itemId];
-    else state.scheduleOverrides.events[itemId] = { start, end };
+    if (start === source.start && end === source.end) delete state.overrides.events[itemId];
+    else state.overrides.events[itemId] = { start, end };
   }
 
   saveState({ render: false });
@@ -1331,7 +1243,7 @@ scheduleForm.addEventListener("submit", (event) => {
 
 resetScheduleButton.addEventListener("click", () => {
   if (!editingSchedule) return;
-  delete state.scheduleOverrides[editingSchedule.kind][editingSchedule.itemId];
+  delete state.overrides[editingSchedule.kind][editingSchedule.itemId];
   saveState({ render: false });
   scheduleDialog.close();
   renderView();
@@ -1416,16 +1328,14 @@ importInput.addEventListener("change", async () => {
     const completed = Number(imported.schema) >= 2
       ? importedCompleted
       : Object.fromEntries(Object.entries(importedCompleted).filter(([, value]) => value === true));
-    state = {
+    const nextState = {
       ...DEFAULT_STATE,
       ...imported,
       schema: DEFAULT_STATE.schema,
       completed,
       completedAt: { ...(imported.completedAt || {}) },
-      scheduleOverrides: {
-        tasks: { ...(imported.scheduleOverrides?.tasks || {}) },
-        events: { ...(imported.scheduleOverrides?.events || {}) },
-      },
+      overrides: migrateOverrides(imported),
+      ranks: { ...DEFAULT_STATE.ranks, ...(imported.ranks || {}) },
       dayPlans: imported.dayPlans && typeof imported.dayPlans === "object" ? imported.dayPlans : {},
       applicationStatuses: { ...(imported.applicationStatuses || {}) },
       dsa: { ...(imported.dsa || {}) },
@@ -1433,6 +1343,8 @@ importInput.addEventListener("change", async () => {
       applications: Array.isArray(imported.applications) ? imported.applications : [],
       inbox: Array.isArray(imported.inbox) ? imported.inbox : [],
     };
+    Object.keys(state).forEach((key) => delete state[key]);
+    Object.assign(state, nextState);
     saveState();
     showToast("Backup imported.");
   } catch {
@@ -1460,10 +1372,11 @@ installButton.addEventListener("click", async () => {
 });
 
 async function init() {
+  setRenderer(renderView);
   try {
     const response = await fetch("./MANAGER.md", { cache: "no-store" });
     if (!response.ok) throw new Error(`MANAGER.md returned ${response.status}`);
-    manager = parseManagerMarkdown(await response.text());
+    setManager(parseManagerMarkdown(await response.text()));
     if (state.view === "life") state.view = "travel";
     const requestedView = new URLSearchParams(window.location.search).get("view");
     if (requestedView && VIEW_TITLES[requestedView]) state.view = requestedView;
