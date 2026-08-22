@@ -29,6 +29,7 @@ import {
 
 const STATUS_OPTIONS = ["Interested", "Applied", "Challenge", "Interview", "Offer", "Rejected", "Withdrawn"];
 const VIEW_TITLES = {
+  list: "Everything",
   today: "Today",
   now: "Now",
   week: "This week",
@@ -74,93 +75,11 @@ const eventEndDate = document.querySelector("#event-end-date");
 const eventEndTime = document.querySelector("#event-end-time");
 const resetScheduleButton = document.querySelector("#reset-schedule-button");
 
-function escapeHTML(value = "") {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function safeURL(value = "") {
-  try {
-    const url = new URL(value, window.location.href);
-    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
-  } catch {
-    return "";
-  }
-}
-
-function id(value = "") {
-  return escapeHTML(value.replace(/[^a-zA-Z0-9_-]/g, ""));
-}
-
-function dateAtNoon(isoDate) {
-  return new Date(`${isoDate}T12:00:00+05:30`);
-}
-
-function addDays(isoDate, amount) {
-  const date = dateAtNoon(isoDate);
-  date.setUTCDate(date.getUTCDate() + amount);
-  return localISODate(date, TIMEZONE);
-}
-
-function dateOnly(value) {
-  const date = managerDate(value);
-  return date ? localISODate(date, TIMEZONE) : "";
-}
-
-function daysFromToday(value) {
-  const target = dateOnly(value);
-  if (!target) return null;
-  const today = localISODate(new Date(), TIMEZONE);
-  return Math.round((dateAtNoon(target) - dateAtNoon(today)) / 86_400_000);
-}
-
-function formatDate(value, { includeTime = true, weekday = false } = {}) {
-  const date = managerDate(value);
-  if (!date) return value || "Date needed";
-  const hasTime = includeTime && /T\d{2}:\d{2}/.test(value);
-  return new Intl.DateTimeFormat("en-IN", {
-    timeZone: TIMEZONE,
-    weekday: weekday ? "short" : undefined,
-    day: "numeric",
-    month: "short",
-    hour: hasTime ? "numeric" : undefined,
-    minute: hasTime ? "2-digit" : undefined,
-  }).format(date);
-}
-
-function formatLongDate(date = new Date()) {
-  return new Intl.DateTimeFormat("en-IN", {
-    timeZone: TIMEZONE,
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(date);
-}
-
-function dueInfo(value) {
-  const difference = daysFromToday(value);
-  const date = managerDate(value);
-  if (!date || difference === null) return { label: value || "Date needed", className: "status-unknown" };
-
-  const time = /T\d{2}:\d{2}/.test(value)
-    ? new Intl.DateTimeFormat("en-IN", { timeZone: TIMEZONE, hour: "numeric", minute: "2-digit" }).format(date)
-    : "";
-
-  if (difference < 0) return { label: `${Math.abs(difference)}d overdue`, className: "status-overdue" };
-  if (difference === 0) return { label: time ? `Today · ${time}` : "Today", className: "status-soon" };
-  if (difference === 1) return { label: time ? `Tomorrow · ${time}` : "Tomorrow", className: "status-soon" };
-  if (difference <= 7) return { label: formatDate(value, { weekday: true }), className: "status-soon" };
-  return { label: formatDate(value), className: "status-open" };
-}
-
-function statusClass(value = "") {
-  const normalized = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return `status-${normalized || "unknown"}`;
-}
+import {
+  escapeHTML, safeURL, id, dateAtNoon, addDays, dateOnly, daysFromToday,
+  formatDate, formatLongDate, dueInfo, statusClass,
+} from "./app/format.js";
+import { renderList, moveItem, attachListDrag } from "./app/list.js";
 
 function taskStatusChanges() {
   return allTasks().filter((task) => Object.prototype.hasOwnProperty.call(state.completed, task.id)
@@ -843,6 +762,7 @@ function renderView() {
   });
 
   const renderers = {
+    list: renderList,
     today: renderToday,
     now: renderNow,
     week: renderWeek,
@@ -858,6 +778,7 @@ function renderView() {
   };
   viewRoot.innerHTML = renderers[validView]();
   viewRoot.scrollTop = 0;
+  attachListDrag(viewRoot);
 }
 
 function navigate(view) {
@@ -1084,6 +1005,23 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
+  const listMove = event.target.closest("[data-list-move]");
+  if (listMove) {
+    const items = openListItems();
+    const from = items.findIndex((item) => item.id === listMove.dataset.listMove);
+    if (from >= 0 && moveItem(listMove.dataset.listMove, from + Number(listMove.dataset.direction))) {
+      showToast("Order updated.");
+    }
+    return;
+  }
+
+  if (event.target.closest("[data-clear-ranks]")) {
+    clearRanks();
+    saveState();
+    showToast("Back to automatic order.");
+    return;
+  }
+
   const taskButton = event.target.closest("[data-task-id]");
   if (taskButton) {
     const taskId = taskButton.dataset.taskId;
@@ -1188,6 +1126,18 @@ document.addEventListener("change", (event) => {
     state.applicationStatuses[statusSelect.dataset.applicationStatus] = statusSelect.value;
     saveState();
     showToast(`Application moved to ${statusSelect.value}.`);
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (!event.altKey || (event.key !== "ArrowUp" && event.key !== "ArrowDown")) return;
+  const row = event.target.closest?.("[data-list-id]");
+  if (!row) return;
+  event.preventDefault();
+  const items = openListItems();
+  const from = items.findIndex((item) => item.id === row.dataset.listId);
+  if (from >= 0 && moveItem(row.dataset.listId, from + (event.key === "ArrowUp" ? -1 : 1))) {
+    showToast("Order updated.");
   }
 });
 
