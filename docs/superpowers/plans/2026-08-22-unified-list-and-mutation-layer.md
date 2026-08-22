@@ -248,7 +248,7 @@ export function replaceRows(markdown, sectionSlug, rows) {
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 7 tests
+Expected: PASS, 8 tests
 
 - [ ] **Step 6: Confirm nothing else broke**
 
@@ -467,7 +467,7 @@ export function applyOperations(markdown, operations, { today }) {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 18 tests
+Expected: PASS, 19 tests
 
 - [ ] **Step 5: Commit**
 
@@ -609,7 +609,7 @@ const APPLY = {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 25 tests
+Expected: PASS, 26 tests
 
 - [ ] **Step 5: Run the full suite**
 
@@ -769,7 +769,7 @@ Add both to `APPLY`:
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 35 tests
+Expected: PASS, 36 tests
 
 - [ ] **Step 5: Commit**
 
@@ -1116,7 +1116,7 @@ for (const row of data.sections.order || []) {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 39 tests
+Expected: PASS, 40 tests
 
 - [ ] **Step 5: Run the full suite**
 
