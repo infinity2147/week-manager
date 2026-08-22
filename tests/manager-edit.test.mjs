@@ -76,3 +76,88 @@ test("replaceRows handles a row count that shrinks", () => {
 test("replaceRows refuses a section that has no table", () => {
   assert.throws(() => replaceRows(markdown, "operating_rules", []), /has no table for section: operating_rules/);
 });
+
+import { OPERATIONS, validateOperation, slugId, applyOperations } from "../lib/manager-edit.js";
+
+const TODAY = "2026-08-22";
+
+test("rejects an unknown operation", () => {
+  assert.throws(() => validateOperation({ op: "dropDatabase" }), /Unknown operation: dropDatabase/);
+  assert.throws(() => validateOperation(null), /must be an object/);
+  assert.ok(OPERATIONS.includes("addTask"));
+});
+
+test("adds a task and generates a slug ID", () => {
+  const next = applyOperations(markdown, [{
+    op: "addTask",
+    fields: { task: "Book the return train", area: "Travel", due: "2026-08-27", priority: "P1", status: "Open", next_action: "Check IRCTC" },
+  }], { today: TODAY });
+  const rows = readRows(next, "tasks");
+  assert.equal(rows.length, 30);
+  const added = rows.at(-1);
+  assert.equal(added.id, "book-the-return-train");
+  assert.equal(added.area, "Travel");
+  assert.equal(added.estimate, "", "unset columns must still be present and empty");
+});
+
+test("de-duplicates a generated ID", () => {
+  const taken = new Set(["book-a-flight", "book-a-flight-2"]);
+  assert.equal(slugId("Book a flight", taken), "book-a-flight-3");
+  assert.equal(slugId("!!!", new Set()), "item");
+});
+
+test("rejects an unknown field so a model cannot invent columns", () => {
+  assert.throws(
+    () => applyOperations(markdown, [{ op: "addTask", fields: { task: "X", urgency: "high" } }], { today: TODAY }),
+    /Unknown tasks field\(s\): urgency/,
+  );
+});
+
+test("updates a task in place and leaves every other line untouched", () => {
+  const next = applyOperations(markdown, [{ op: "updateTask", id: "gj-budget", fields: { due: "2026-08-29T18:00:00+05:30" } }], { today: TODAY });
+  const row = readRows(next, "tasks").find((task) => task.id === "gj-budget");
+  assert.equal(row.due, "2026-08-29T18:00:00+05:30");
+  assert.equal(row.task, "Draft Golden Jubilee budget", "other fields must survive");
+  assert.equal(next.split("\n").length, markdown.split("\n").length, "an update must not change the line count");
+});
+
+test("refuses to change an ID", () => {
+  assert.throws(
+    () => applyOperations(markdown, [{ op: "updateTask", id: "gj-budget", fields: { id: "other" } }], { today: TODAY }),
+    /ID cannot be changed/,
+  );
+});
+
+test("errors on an unknown row rather than silently doing nothing", () => {
+  assert.throws(
+    () => applyOperations(markdown, [{ op: "updateTask", id: "no-such-task", fields: { status: "Done" } }], { today: TODAY }),
+    /tasks has no row with ID no-such-task/,
+  );
+});
+
+test("completes and reopens a task", () => {
+  const done = applyOperations(markdown, [{ op: "completeTask", id: "ml-video", done: true }], { today: TODAY });
+  assert.equal(readRows(done, "tasks").find((t) => t.id === "ml-video").status, "Done");
+  const reopened = applyOperations(done, [{ op: "completeTask", id: "ml-video", done: false }], { today: TODAY });
+  assert.equal(readRows(reopened, "tasks").find((t) => t.id === "ml-video").status, "Open");
+});
+
+test("deletes a task", () => {
+  const next = applyOperations(markdown, [{ op: "deleteTask", id: "ml-video" }], { today: TODAY });
+  assert.equal(readRows(next, "tasks").length, 28);
+  assert.ok(!readRows(next, "tasks").some((t) => t.id === "ml-video"));
+});
+
+test("refreshes the Updated metadata line on any write", () => {
+  const next = applyOperations(markdown, [{ op: "completeTask", id: "ml-video", done: true }], { today: TODAY });
+  assert.match(next, /^- Updated: 2026-08-22$/m);
+  assert.ok(!next.includes("- Updated: 2026-08-18"));
+});
+
+test("applies several operations in order", () => {
+  const next = applyOperations(markdown, [
+    { op: "addTask", fields: { task: "Alpha", next_action: "Start" } },
+    { op: "updateTask", id: "alpha", fields: { priority: "P0" } },
+  ], { today: TODAY });
+  assert.equal(readRows(next, "tasks").at(-1).priority, "P0");
+});
