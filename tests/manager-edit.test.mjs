@@ -55,3 +55,24 @@ test("an escaped cell survives a round-trip", () => {
 test("renders empty cells with the file's spacing", () => {
   assert.equal(renderRow(["id", "link", "notes"], { id: "x", notes: "n" }), "| x |  | n |");
 });
+
+test("a cell containing a pipe and a backslash survives a full write-read cycle", () => {
+  const hostile = "a | b \\ c \\| d";
+  const rows = readRows(markdown, "tasks");
+  const written = replaceRows(markdown, "tasks", rows.map((row, index) => (index === 0 ? { ...row, notes: hostile } : row)));
+  const readBack = readRows(written, "tasks");
+  assert.equal(readBack[0].notes, hostile);
+  assert.equal(readBack[0].task, rows[0].task, "neighbouring cells must be unaffected");
+  assert.equal(readBack.length, rows.length);
+});
+
+test("replaceRows handles a row count that shrinks", () => {
+  const rows = readRows(markdown, "tasks");
+  const fewer = replaceRows(markdown, "tasks", rows.slice(0, 5));
+  assert.equal(readRows(fewer, "tasks").length, 5);
+  assert.equal(readRows(fewer, "events").length, readRows(markdown, "events").length, "other tables must be untouched");
+});
+
+test("replaceRows refuses a section that has no table", () => {
+  assert.throws(() => replaceRows(markdown, "operating_rules", []), /has no table for section: operating_rules/);
+});
