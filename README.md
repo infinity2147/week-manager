@@ -14,28 +14,28 @@ Open <http://localhost:8080>. Opening `index.html` directly will not work becaus
 
 ## Everyday use
 
-1. Open **Now** to arrange up to eight things for today. The first three become the **Today** focus; use the arrow buttons to reorder them.
-2. Open **Today** and work only from those first three items. If fewer than three were chosen manually, automatic ranking fills the gaps.
+1. Open **Everything** to see every open task and event in one list. Overdue work is red and sits at the top, today is amber, this week is slate, and later is grey.
+2. Drag any row — or use its ↑ ↓ buttons, or `Alt+↑` / `Alt+↓` — to set your own order. It persists until you choose **Reset to automatic**. A row you drag keeps its true colour, so an overdue task still reads as overdue wherever you put it.
 3. Tap `+` as you solve DSA questions; log each submitted application.
 4. For any new information, send the Telegram bot a normal text or voice note. It can add tasks and events, move dates, mark work complete, record applications or rejections, and answer questions about the published plan. No command format is required.
 5. Codex remains available for larger changes. The website Inbox is also a private temporary scratchpad; choose **Copy for Codex** when you want its contents made durable.
 6. Travel and Golden Jubilee have separate views. Golden Jubilee is Anant's overall-coordinator board.
 
-The automatic Top 3 considers only unfinished work. Its score gives overdue tasks the strongest urgency boost, starts P0 ahead of P1 and P1 ahead of P2, raises nearer deadlines each day, and leaves undated work at the end. A manual **Now** order always wins. The order is keyed to the current date, so tomorrow starts clean while every unfinished task remains open in the normal queue.
+The automatic order considers only unfinished work. The urgency band always comes first — overdue, then today, then this week, then later — and priority orders items only inside a band, so a P0 due next week can never jump above a P2 due today. Undated work sits at the end. A row you drag keeps its position until you reset it.
 
 ## Website and Dock app sync
 
 - The website and Safari Dock app load the same published code and `MANAGER.md`, so Codex- or Telegram-published tasks, dates, and status updates appear in both after a refresh.
-- Check-offs, today's manual order, date/time edits, DSA counts, quick notes, and locally logged applications use browser storage. Treat Safari and the Dock app as separate for this local data.
+- Check-offs, your manual order, date/time edits, DSA counts, quick notes, and locally logged applications use browser storage. Treat Safari and the Dock app as separate for this local data.
 - Completed tasks move to **Completed** instead of disappearing. To make a local completion visible everywhere, use **Inbox & sync → Copy for Codex**, paste the update into Codex, and ask it to publish.
 
 ## Edit dates and times
 
-- Tap any task deadline (or its pencil) to change its date and optional time.
-- Tap an event's **Edit** button, or tap it in the weekly grid, to change its start and end.
+- Click any task or event, in any view, to open one editor covering every field it holds — title, dates, priority, area, status, next action, link, and notes.
+- The editor never navigates away from the view you are on.
 - Leaving the time blank makes an all-day date. If a start time is supplied without an end time, the event is saved as ending at the same time.
 - These edits immediately affect ordering and calendar export in the current browser or Dock app. Use **Inbox & sync → Copy for Codex** to publish them into `MANAGER.md` so every installation and Telegram sees them.
-- The edit dialog's **Use published schedule** button discards the local override.
+- The editor's **Use published values** button discards the local override.
 
 ## Install it on your desktop
 

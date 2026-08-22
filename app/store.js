@@ -3,10 +3,11 @@ import { toListItems, sortListItems } from "../lib/manager-order.js";
 
 export const STORAGE_KEY = "anant-week-manager-v1";
 export const TIMEZONE = "Asia/Kolkata";
+export const STATUS_OPTIONS = ["Interested", "Applied", "Challenge", "Interview", "Offer", "Rejected", "Withdrawn"];
 
 export const DEFAULT_STATE = {
   schema: 4,
-  view: "today",
+  view: "list",
   completed: {},
   completedAt: {},
   overrides: { tasks: {}, events: {} },

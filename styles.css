@@ -2097,3 +2097,7 @@ a {
   .list-row { grid-template-columns: auto 1fr; }
   .list-move { grid-column: 1 / -1; justify-content: flex-end; }
 }
+
+.more-link { display: grid; gap: 4px; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.more-link:hover { border-color: #c9c3b2; }
+.more-link p { margin: 0; font-size: 0.84rem; color: #5c635d; }

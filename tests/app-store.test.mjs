@@ -65,9 +65,16 @@ test("unreadable storage falls back to a clean default state", () => {
   assert.deepEqual(state.ranks, {});
 });
 
-test("the default view stays today until the list view exists", () => {
-  assert.equal(DEFAULT_STATE.view, "today");
+test("the unified list is the default view", () => {
+  assert.equal(DEFAULT_STATE.view, "list");
   assert.equal(DEFAULT_STATE.schema, 4);
+});
+
+test("a saved view retired by the redesign is not carried forward as-is", () => {
+  // app.js maps today/now/week onto "list" at init; the store must not resurrect them.
+  for (const retired of ["today", "now", "week"]) {
+    assert.notEqual(DEFAULT_STATE.view, retired);
+  }
 });
 
 test("ranks survive a save and reload", () => {

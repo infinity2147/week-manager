@@ -1,10 +1,17 @@
-const CACHE_NAME = "anant-week-manager-v6";
+const CACHE_NAME = "anant-week-manager-v7";
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./app/store.js",
+  "./app/format.js",
+  "./app/list.js",
+  "./app/editor.js",
+  "./app/views.js",
   "./lib/manager-data.js",
+  "./lib/manager-edit.js",
+  "./lib/manager-order.js",
   "./MANAGER.md",
   "./manifest.webmanifest",
   "./icons/icon.svg",
