@@ -110,3 +110,37 @@ test("a move survives a round-trip through the sort", () => {
   const after = sortListItems(toListItems({ tasks: TASKS, events: EVENTS, ranks: { soon: rank }, todayISO: TODAY }));
   assert.deepEqual(after.map((item) => item.id), ["late", "soon", "now", "finale"]);
 });
+
+test("a band always outranks the one below it, whatever the priorities", () => {
+  const overdueLow = autoScore({ when: "2026-08-21", priority: "P2" }, TODAY);
+  const todayLow = autoScore({ when: "2026-08-22", priority: "P2" }, TODAY);
+  const weekHigh = autoScore({ when: "2026-08-26", priority: "P0" }, TODAY);
+  const laterHigh = autoScore({ when: "2026-12-01", priority: "P0" }, TODAY);
+  assert.ok(overdueLow < todayLow, "an overdue P2 must beat a P2 due today");
+  assert.ok(todayLow < weekHigh, "a P2 due today must beat a P0 due this week");
+  assert.ok(weekHigh < laterHigh, "this week must beat later");
+});
+
+test("the automatic list never interleaves bands", () => {
+  const tasks = [
+    { id: "a", task: "Later P0", due: "2026-12-01", priority: "P0", area: "Career", status: "Open" },
+    { id: "b", task: "Today P2", due: "2026-08-22", priority: "P2", area: "Career", status: "Open" },
+    { id: "c", task: "Week P0", due: "2026-08-26", priority: "P0", area: "Career", status: "Open" },
+    { id: "d", task: "Overdue P2", due: "2026-08-20", priority: "P2", area: "Career", status: "Open" },
+  ];
+  const bands = sortListItems(toListItems({ tasks, events: [], ranks: {}, todayISO: TODAY })).map((item) => item.band);
+  assert.deepEqual(bands, ["overdue", "today", "week", "later"]);
+  const blocks = [];
+  for (const band of bands) if (blocks.at(-1) !== band) blocks.push(band);
+  assert.equal(blocks.length, new Set(blocks).size, "a band heading must never repeat");
+});
+
+test("more overdue sorts before less overdue regardless of priority", () => {
+  assert.ok(
+    autoScore({ when: "2026-08-10", priority: "P2" }, TODAY) < autoScore({ when: "2026-08-21", priority: "P0" }, TODAY),
+  );
+});
+
+test("undated work sorts after even the most distant dated work", () => {
+  assert.ok(autoScore({ when: "", priority: "P0" }, TODAY) > autoScore({ when: "2099-01-01", priority: "P2" }, TODAY));
+});
