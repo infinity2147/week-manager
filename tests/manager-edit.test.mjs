@@ -187,3 +187,68 @@ test("a truncated generated ID is still a clean slug", () => {
 test("an operation with no fields object fails with a clear message", () => {
   assert.throws(() => applyOperations(markdown, [{ op: "addTask" }], { today: TODAY }), /needs a fields object/);
 });
+
+test("adds and updates an event", () => {
+  const added = applyOperations(markdown, [{
+    op: "addEvent",
+    fields: { event: "Pocket FM interview", area: "Career", start: "2026-08-28T15:00:00+05:30", end: "2026-08-28T16:00:00+05:30", status: "Confirmed" },
+  }], { today: TODAY });
+  const row = readRows(added, "events").at(-1);
+  assert.equal(row.id, "pocket-fm-interview");
+  assert.equal(row.location, "");
+
+  const moved = applyOperations(added, [{ op: "updateEvent", id: "pocket-fm-interview", fields: { start: "2026-08-29T15:00:00+05:30" } }], { today: TODAY });
+  assert.equal(readRows(moved, "events").at(-1).start, "2026-08-29T15:00:00+05:30");
+});
+
+test("deletes an event", () => {
+  const next = applyOperations(markdown, [{ op: "deleteEvent", id: "go-home" }], { today: TODAY });
+  assert.ok(!readRows(next, "events").some((event) => event.id === "go-home"));
+});
+
+test("adds an application", () => {
+  const next = applyOperations(markdown, [{
+    op: "addApplication",
+    fields: { company: "Linear", role: "ML Engineer", status: "Applied", applied_on: "2026-08-22", follow_up: "2026-08-29" },
+  }], { today: TODAY });
+  const row = readRows(next, "applications").at(-1);
+  assert.equal(row.id, "linear");
+  assert.equal(row.role, "ML Engineer");
+});
+
+test("recording a rejection also flips the application status", () => {
+  const next = applyOperations(markdown, [{
+    op: "recordRejection",
+    applicationId: "app-revolut",
+    fields: { company: "Revolut", role: "Role not recorded", rejected_on: "2026-08-22", stage: "Application", reason_or_signal: "Portal moved to Not selected", recovery_action: "Ask for feedback by email", reapply_after: "2027-02-22" },
+  }], { today: TODAY });
+  const rejection = readRows(next, "rejections").at(-1);
+  assert.equal(rejection.id, "revolut");
+  assert.equal(rejection.stage, "Application");
+  assert.equal(readRows(next, "applications").find((a) => a.id === "app-revolut").status, "Rejected");
+});
+
+test("a rejection for an unknown application is refused", () => {
+  assert.throws(
+    () => applyOperations(markdown, [{ op: "recordRejection", applicationId: "app-nope", fields: { company: "Nope" } }], { today: TODAY }),
+    /applications has no row with ID app-nope/,
+  );
+});
+
+test("adds a waiting-for row", () => {
+  const next = applyOperations(markdown, [{
+    op: "addWaitingFor",
+    fields: { missing_information: "Pocket FM interview format", area: "Career", why_it_matters: "Cannot prepare without it", next_check: "2026-08-25" },
+  }], { today: TODAY });
+  assert.equal(readRows(next, "waiting_for").at(-1).id, "pocket-fm-interview-format");
+});
+
+test("every table still round-trips after a batch of writes", () => {
+  const next = applyOperations(markdown, [
+    { op: "addTask", fields: { task: "Round trip check", next_action: "None" } },
+    { op: "addEvent", fields: { event: "Round trip event", start: "2026-09-01" } },
+  ], { today: TODAY });
+  for (const name of SECTIONS) {
+    assert.equal(replaceRows(next, name, readRows(next, name)), next, `${name} did not round-trip`);
+  }
+});
