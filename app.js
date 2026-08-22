@@ -1324,6 +1324,7 @@ importInput.addEventListener("change", async () => {
     const imported = parsed.state || parsed;
     if (!imported || typeof imported !== "object") throw new Error("Invalid backup");
     delete imported.assistantMessages;
+    delete imported.scheduleOverrides;
     const importedCompleted = imported.completed && typeof imported.completed === "object" ? imported.completed : {};
     const completed = Number(imported.schema) >= 2
       ? importedCompleted

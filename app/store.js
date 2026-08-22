@@ -33,6 +33,7 @@ export function loadState() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     const savedState = saved && typeof saved === "object" ? { ...saved } : {};
     delete savedState.assistantMessages;
+    delete savedState.scheduleOverrides;
     const savedCompleted = saved?.completed && typeof saved.completed === "object" ? saved.completed : {};
     const completed = Number(saved?.schema) >= 2
       ? savedCompleted
