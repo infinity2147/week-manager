@@ -467,7 +467,7 @@ export function applyOperations(markdown, operations, { today }) {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 19 tests
+Expected: PASS, 22 tests
 
 - [ ] **Step 5: Commit**
 
@@ -609,7 +609,7 @@ const APPLY = {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 26 tests
+Expected: PASS, 29 tests
 
 - [ ] **Step 5: Run the full suite**
 
@@ -769,7 +769,7 @@ Add both to `APPLY`:
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 36 tests
+Expected: PASS, 39 tests
 
 - [ ] **Step 5: Commit**
 
@@ -1116,7 +1116,7 @@ for (const row of data.sections.order || []) {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 40 tests
+Expected: PASS, 43 tests
 
 - [ ] **Step 5: Run the full suite**
 
