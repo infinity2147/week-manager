@@ -381,7 +381,7 @@ test("deleting from a file with no Order section does not create one", () => {
 
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { writeFile, mkdtemp, cp } from "node:fs/promises";
+import { writeFile, mkdtemp, cp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -389,14 +389,16 @@ const run = promisify(execFile);
 
 async function validate(content) {
   const directory = await mkdtemp(join(tmpdir(), "manager-"));
-  await cp(new URL("../lib", import.meta.url), join(directory, "lib"), { recursive: true });
-  await cp(new URL("../scripts", import.meta.url), join(directory, "scripts"), { recursive: true });
-  await writeFile(join(directory, "MANAGER.md"), content, "utf8");
   try {
+    await cp(new URL("../lib", import.meta.url), join(directory, "lib"), { recursive: true });
+    await cp(new URL("../scripts", import.meta.url), join(directory, "scripts"), { recursive: true });
+    await writeFile(join(directory, "MANAGER.md"), content, "utf8");
     const { stdout } = await run(process.execPath, [join(directory, "scripts/validate-manager.mjs")]);
     return { ok: true, output: stdout };
   } catch (error) {
     return { ok: false, output: `${error.stdout || ""}${error.stderr || ""}` };
+  } finally {
+    await rm(directory, { recursive: true, force: true });
   }
 }
 
@@ -421,4 +423,24 @@ test("an Order row pointing at nothing fails validation", async () => {
   const result = await validate(broken);
   assert.equal(result.ok, false);
   assert.match(result.output, /order\/ghost is not a known task or event/);
+});
+
+test("every rank the writer can produce passes validation", async () => {
+  for (const rank of [1, -1, 0.5, 1e-7, 1e21, 0.1 + 0.2, 2.5]) {
+    const doc = applyOperations(markdown, [{ op: "setRank", id: "gj-budget", rank }], { today: TODAY });
+    const result = await validate(doc);
+    assert.equal(result.ok, true, `writer produced rank ${String(rank)} that the validator rejects: ${result.output}`);
+  }
+});
+
+test("a blank or non-numeric rank fails validation", async () => {
+  for (const cell of ["", "0x10", "Infinity", "1,5", "soon"]) {
+    const broken = markdown.replace(
+      "\n## Operating Rules",
+      `\n## Order\n\n| ID | Rank |\n| --- | --- |\n| gj-budget | ${cell} |\n\n## Operating Rules`,
+    );
+    const result = await validate(broken);
+    assert.equal(result.ok, false, `rank cell ${JSON.stringify(cell)} was wrongly accepted`);
+    assert.match(result.output, /rank is not a number/);
+  }
 });

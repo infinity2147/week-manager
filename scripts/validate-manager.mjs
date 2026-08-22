@@ -31,13 +31,15 @@ for (const task of data.sections.tasks || []) {
   if (!task.next_action) errors.push(`Task ${task.id} has no next action`);
 }
 
+const RANK_PATTERN = /^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/i;
+
 const orderableIds = new Set([
   ...(data.sections.tasks || []).map((task) => task.id),
   ...(data.sections.events || []).map((event) => event.id),
 ]);
 
 for (const row of data.sections.order || []) {
-  if (!Number.isFinite(Number(row.rank))) errors.push(`order/${row.id} rank is not a number: ${row.rank}`);
+  if (!RANK_PATTERN.test(String(row.rank ?? "").trim())) errors.push(`order/${row.id} rank is not a number: ${row.rank}`);
   if (!orderableIds.has(row.id)) errors.push(`order/${row.id} is not a known task or event`);
 }
 
