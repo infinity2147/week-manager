@@ -47,7 +47,6 @@ const VIEW_TITLES = {
 let applicationFilter = "All";
 let installPrompt = null;
 let toastTimer = null;
-let editingSchedule = null;
 
 const viewRoot = document.querySelector("#view-root");
 const viewTitle = document.querySelector("#view-title");
@@ -62,41 +61,17 @@ const quickDetail = document.querySelector("#quick-detail");
 const installDialog = document.querySelector("#install-dialog");
 const installButton = document.querySelector("#install-button");
 const importInput = document.querySelector("#import-input");
-const scheduleDialog = document.querySelector("#schedule-dialog");
-const scheduleForm = document.querySelector("#schedule-form");
-const scheduleName = document.querySelector("#schedule-name");
-const taskScheduleFields = document.querySelector("#task-schedule-fields");
-const eventScheduleFields = document.querySelector("#event-schedule-fields");
-const taskDueDate = document.querySelector("#task-due-date");
-const taskDueTime = document.querySelector("#task-due-time");
-const eventStartDate = document.querySelector("#event-start-date");
-const eventStartTime = document.querySelector("#event-start-time");
-const eventEndDate = document.querySelector("#event-end-date");
-const eventEndTime = document.querySelector("#event-end-time");
-const resetScheduleButton = document.querySelector("#reset-schedule-button");
 
 import {
   escapeHTML, safeURL, id, dateAtNoon, addDays, dateOnly, daysFromToday,
   formatDate, formatLongDate, dueInfo, statusClass,
 } from "./app/format.js";
 import { renderList, moveItem, attachListDrag } from "./app/list.js";
+import { openEditor, attachEditor } from "./app/editor.js";
 
 function taskStatusChanges() {
   return allTasks().filter((task) => Object.prototype.hasOwnProperty.call(state.completed, task.id)
     && Boolean(state.completed[task.id]) !== sourceTaskDone(task));
-}
-
-function scheduleParts(value = "") {
-  const match = String(value).match(/^(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}))?/);
-  return { date: match?.[1] || "", time: match?.[2] || "" };
-}
-
-function composeSchedule(date, time) {
-  return time ? `${date}T${time}:00+05:30` : date;
-}
-
-function hasScheduleOverride(kind, itemId) {
-  return Object.prototype.hasOwnProperty.call(state.overrides[kind], itemId);
 }
 
 function scheduleOverrideCount() {
@@ -105,41 +80,6 @@ function scheduleOverrideCount() {
 
 function eventEditButton(eventId, label = "Edit date") {
   return `<button class="button button-quiet button-small schedule-inline" type="button" data-edit-event="${id(eventId)}">✎ ${escapeHTML(label)}</button>`;
-}
-
-function openScheduleEditor(kind, itemId) {
-  const isTask = kind === "tasks";
-  const item = (isTask ? allTasks() : allEvents()).find((entry) => entry.id === itemId);
-  if (!item) return;
-
-  editingSchedule = { kind, itemId };
-  document.querySelector("#schedule-dialog-title").textContent = isTask ? "Edit task deadline" : "Edit event schedule";
-  scheduleName.textContent = isTask ? item.task : item.event;
-  taskScheduleFields.hidden = !isTask;
-  eventScheduleFields.hidden = isTask;
-  taskDueDate.disabled = !isTask;
-  taskDueTime.disabled = !isTask;
-  eventStartDate.disabled = isTask;
-  eventStartTime.disabled = isTask;
-  eventEndDate.disabled = isTask;
-  eventEndTime.disabled = isTask;
-
-  if (isTask) {
-    const due = scheduleParts(item.due);
-    taskDueDate.value = due.date;
-    taskDueTime.value = due.time;
-  } else {
-    const start = scheduleParts(item.start);
-    const end = scheduleParts(item.end);
-    eventStartDate.value = start.date;
-    eventStartTime.value = start.time;
-    eventEndDate.value = end.date || start.date;
-    eventEndTime.value = end.time;
-  }
-
-  resetScheduleButton.hidden = !hasScheduleOverride(kind, itemId);
-  scheduleDialog.showModal();
-  requestAnimationFrame(() => (isTask ? taskDueDate : eventStartDate).focus());
 }
 
 function taskScore(task) {
@@ -959,13 +899,13 @@ document.addEventListener("click", async (event) => {
 
   const editTask = event.target.closest("[data-edit-task]");
   if (editTask) {
-    openScheduleEditor("tasks", editTask.dataset.editTask);
+    openEditor("tasks", editTask.dataset.editTask);
     return;
   }
 
   const editEvent = event.target.closest("[data-edit-event]");
   if (editEvent) {
-    openScheduleEditor("events", editEvent.dataset.editEvent);
+    openEditor("events", editEvent.dataset.editEvent);
     return;
   }
 
@@ -1143,76 +1083,6 @@ document.addEventListener("keydown", (event) => {
 
 quickKind.addEventListener("change", updateQuickLabels);
 
-scheduleForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (!editingSchedule) return;
-
-  const { kind, itemId } = editingSchedule;
-  if (kind === "tasks") {
-    const due = composeSchedule(taskDueDate.value, taskDueTime.value);
-    const source = sourceTasks().find((task) => task.id === itemId);
-    if (!source) return;
-    if (due === source.due) delete state.overrides.tasks[itemId];
-    else state.overrides.tasks[itemId] = { due };
-  } else {
-    eventStartTime.setCustomValidity("");
-    eventEndDate.setCustomValidity("");
-    const startDate = eventStartDate.value;
-    const startTime = eventStartTime.value;
-    const endDate = eventEndDate.value || startDate;
-    let endTime = eventEndTime.value;
-
-    if (endTime && !startTime) {
-      eventStartTime.setCustomValidity("Add a start time, or leave both times blank for an all-day event.");
-      eventStartTime.reportValidity();
-      return;
-    }
-    if (startTime && !endTime) endTime = startTime;
-
-    const start = composeSchedule(startDate, startTime);
-    const end = composeSchedule(endDate, endTime);
-    const startValue = managerDate(start)?.getTime();
-    const endValue = managerDate(end)?.getTime();
-    if (Number.isFinite(startValue) && Number.isFinite(endValue) && endValue < startValue) {
-      eventEndDate.setCustomValidity("The event must end after it starts.");
-      eventEndDate.reportValidity();
-      return;
-    }
-
-    const source = section("events").find((item) => item.id === itemId);
-    if (!source) return;
-    if (start === source.start && end === source.end) delete state.overrides.events[itemId];
-    else state.overrides.events[itemId] = { start, end };
-  }
-
-  saveState({ render: false });
-  scheduleDialog.close();
-  renderView();
-  showToast("Date and time saved in this app.");
-});
-
-resetScheduleButton.addEventListener("click", () => {
-  if (!editingSchedule) return;
-  delete state.overrides[editingSchedule.kind][editingSchedule.itemId];
-  saveState({ render: false });
-  scheduleDialog.close();
-  renderView();
-  showToast("Published date and time restored.");
-});
-
-scheduleDialog.addEventListener("close", () => {
-  editingSchedule = null;
-  eventStartTime.setCustomValidity("");
-  eventEndDate.setCustomValidity("");
-});
-
-[eventStartDate, eventStartTime, eventEndDate, eventEndTime].forEach((input) => {
-  input.addEventListener("input", () => {
-    eventStartTime.setCustomValidity("");
-    eventEndDate.setCustomValidity("");
-  });
-});
-
 quickForm.addEventListener("submit", (event) => {
   event.preventDefault();
   const kind = quickKind.value;
@@ -1324,6 +1194,7 @@ installButton.addEventListener("click", async () => {
 
 async function init() {
   setRenderer(renderView);
+  attachEditor((message) => { renderView(); showToast(message); });
   try {
     const response = await fetch("./MANAGER.md", { cache: "no-store" });
     if (!response.ok) throw new Error(`MANAGER.md returned ${response.status}`);
