@@ -1157,11 +1157,55 @@ git commit -m "Validate the optional Order section"
 
 Move these declarations out of `app.js` verbatim, changing nothing but adding `export`: `STORAGE_KEY`, `TIMEZONE`, `DEFAULT_STATE`, `loadState`, `saveState`, `section`, `effectiveTaskStatus`, `isDone`, `sourceTaskDone`, `sourceTasks`, `allTasks`, `allEvents`, `todayKey`.
 
-Add `schema: 4` to `DEFAULT_STATE` and add `ranks: {}` alongside the existing keys, preserving it in `loadState` the same way `dsa` is preserved:
+Add `schema: 4` to `DEFAULT_STATE`, add `ranks: {}`, and **replace** `scheduleOverrides` with a single `overrides` map:
 
 ```js
+export const DEFAULT_STATE = {
+  schema: 4,
+  view: "list",
+  completed: {},
+  completedAt: {},
+  overrides: { tasks: {}, events: {} },
+  ranks: {},
+  dayPlans: {},
+  applicationStatuses: {},
+  dsa: {},
+  localItems: [],
+  applications: [],
+  inbox: [],
+};
+```
+
+One map, not two. Task 10 stores full field edits in it, and a date-only edit is
+just an edit whose only key is `due`. In `loadState`, migrate any schema-3 data
+forward and preserve both new keys:
+
+```js
+function migrateOverrides(saved) {
+  const legacy = saved?.scheduleOverrides || {};
+  const current = saved?.overrides || {};
+  return {
+    tasks: { ...(legacy.tasks || {}), ...(current.tasks || {}) },
+    events: { ...(legacy.events || {}), ...(current.events || {}) },
+  };
+}
+```
+
+Then inside the returned object use:
+
+```js
+overrides: migrateOverrides(saved),
 ranks: { ...DEFAULT_STATE.ranks, ...(saved?.ranks || {}) },
 ```
+
+and delete the old `scheduleOverrides: {...}` entry. Apply the identical
+migration in the backup-import handler in `app.js`, which rebuilds state the
+same way.
+
+Rename the two helpers that read the old map — `hasScheduleOverride(kind, id)`
+and `scheduleOverrideCount()` — to read `state.overrides` instead of
+`state.scheduleOverrides`. `localChangeCount` and `codexUpdateMarkdown` call
+them, so no further change is needed there.
 
 Because `saveState` used to call `renderView()` directly and the store must not import the view layer, add an injected renderer:
 
@@ -1200,6 +1244,24 @@ export function setRank(id, rank) {
 export function clearRanks() {
   state.ranks = {};
 }
+
+Update `allTasks` and `allEvents` in the same edit so they read the renamed map:
+
+```js
+export function allTasks() {
+  return sourceTasks().map((task) => {
+    const patch = state.overrides.tasks[task.id];
+    return patch ? { ...task, ...patch, schedule_local: true } : task;
+  });
+}
+
+export function allEvents() {
+  return section("events").map((event) => {
+    const patch = state.overrides.events[event.id];
+    return patch ? { ...event, ...patch, schedule_local: true } : event;
+  });
+}
+```
 
 export function openListItems() {
   const items = toListItems({
@@ -1705,9 +1767,7 @@ function compose(date, time) {
 }
 
 function overrides(kind) {
-  state.fieldOverrides ||= { tasks: {}, events: {} };
-  state.fieldOverrides[kind] ||= {};
-  return state.fieldOverrides[kind];
+  return state.overrides[kind];
 }
 
 export function openEditor(kind, itemId) {
@@ -1856,29 +1916,19 @@ export function attachEditor(afterSave) {
 }
 ```
 
-- [ ] **Step 3: Apply field overrides in the store**
+- [ ] **Step 3: Confirm the store needs no change**
 
-In `app/store.js`, extend the two merge functions so overrides layer on top of both schedule and field changes:
+Task 7 already made `state.overrides` the single map that `allTasks` and
+`allEvents` layer on top of source data, and the editor writes full field
+patches into that same map. There is no second map and nothing to add here.
 
-```js
-export function allTasks() {
-  const fields = state.fieldOverrides?.tasks || {};
-  return sourceTasks().map((task) => {
-    const patch = { ...(state.scheduleOverrides.tasks[task.id] || {}), ...(fields[task.id] || {}) };
-    return Object.keys(patch).length ? { ...task, ...patch, schedule_local: true } : task;
-  });
-}
+Verify it by reading `app/store.js`: `allTasks` must read `state.overrides.tasks`
+and `allEvents` must read `state.overrides.events`, and the string
+`scheduleOverrides` must appear nowhere in `app/` except inside the
+`migrateOverrides` helper.
 
-export function allEvents() {
-  const fields = state.fieldOverrides?.events || {};
-  return section("events").map((event) => {
-    const patch = { ...(state.scheduleOverrides.events[event.id] || {}), ...(fields[event.id] || {}) };
-    return Object.keys(patch).length ? { ...event, ...patch, schedule_local: true } : event;
-  });
-}
-```
-
-Add `fieldOverrides: { tasks: {}, events: {} }` to `DEFAULT_STATE`, and preserve it in `loadState` exactly as `scheduleOverrides` is preserved.
+Run: `grep -rn "scheduleOverrides\|fieldOverrides" app/ app.js`
+Expected: exactly one hit, the legacy read inside `migrateOverrides`.
 
 - [ ] **Step 4: Replace the old dialog wiring in `app.js`**
 
@@ -1929,7 +1979,7 @@ Expected: all pass
 - [ ] **Step 8: Commit**
 
 ```bash
-git add app/editor.js app/store.js app.js index.html styles.css
+git add app/editor.js app.js index.html styles.css
 git commit -m "Add the universal task and event editor"
 ```
 
