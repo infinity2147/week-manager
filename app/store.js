@@ -18,6 +18,7 @@ export const DEFAULT_STATE = {
   localItems: [],
   applications: [],
   inbox: [],
+  pendingOps: [],
 };
 
 export function migrateOverrides(saved) {
@@ -53,6 +54,7 @@ export function loadState() {
       localItems: Array.isArray(saved?.localItems) ? saved.localItems : [],
       applications: Array.isArray(saved?.applications) ? saved.applications : [],
       inbox: Array.isArray(saved?.inbox) ? saved.inbox : [],
+      pendingOps: Array.isArray(saved?.pendingOps) ? saved.pendingOps : [],
     };
   } catch {
     return structuredClone(DEFAULT_STATE);

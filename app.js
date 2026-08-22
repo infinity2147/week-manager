@@ -63,6 +63,7 @@ import {
 } from "./app/format.js";
 import { renderList, moveItem, attachListDrag } from "./app/list.js";
 import { openEditor, attachEditor } from "./app/editor.js";
+import { fetchManagerMarkdown, flush, publish, queueCount, isConfigured, saveSettings, forgetSettings, workerURL } from "./app/sync.js";
 import {
   applicationStatus,
   setApplicationFilter,
@@ -249,7 +250,12 @@ document.addEventListener("click", async (event) => {
       state.completedAt[taskId] = new Date().toISOString();
     }
     saveState();
-    showToast(isDone(task) ? "Done. It is saved in Completed." : "Moved back to open.");
+    const nowDone = isDone(task);
+    showToast(nowDone ? "Done. It is saved in Completed." : "Moved back to open.");
+    if (!task.local && isConfigured()) {
+      publish([{ op: "completeTask", id: taskId, done: nowDone }])
+        .then((result) => { if (!result.ok) showToast(`Saved here. ${result.pending} change(s) still to publish.`); });
+    }
     return;
   }
 
@@ -288,6 +294,25 @@ document.addEventListener("click", async (event) => {
     state.inbox = state.inbox.filter((item) => item.id !== targetId);
     saveState();
     showToast("Removed from this device.");
+    return;
+  }
+
+  if (event.target.closest("[data-sync-forget]")) {
+    forgetSettings();
+    renderView();
+    showToast("Disconnected. Changes stay in this browser again.");
+    return;
+  }
+
+  if (event.target.closest("[data-sync-retry]")) {
+    const result = await flush();
+    if (result.ok) {
+      if (result.markdown) setManager(parseManagerMarkdown(result.markdown));
+      renderView();
+      showToast("Everything published.");
+    } else {
+      showToast(result.reason === "unauthorized" ? "That passphrase was refused." : `Still ${result.pending} waiting. ${result.reason}`);
+    }
     return;
   }
 
@@ -388,6 +413,17 @@ quickForm.addEventListener("submit", (event) => {
 
 document.addEventListener("submit", (event) => {
 
+  if (event.target.id === "sync-form") {
+    event.preventDefault();
+    saveSettings({
+      workerUrl: document.querySelector("#sync-url").value,
+      passphrase: document.querySelector("#sync-secret").value,
+    });
+    renderView();
+    showToast(isConfigured() ? "Connected. Edits will publish from now on." : "Connection cleared.");
+    return;
+  }
+
   if (event.target.id !== "inbox-form") return;
   event.preventDefault();
   const input = event.target.elements.capture;
@@ -459,9 +495,7 @@ async function init() {
   setRenderer(renderView);
   attachEditor((message) => { renderView(); showToast(message); });
   try {
-    const response = await fetch("./MANAGER.md", { cache: "no-store" });
-    if (!response.ok) throw new Error(`MANAGER.md returned ${response.status}`);
-    setManager(parseManagerMarkdown(await response.text()));
+    setManager(parseManagerMarkdown(await fetchManagerMarkdown()));
     const RETIRED_VIEWS = { life: "travel", today: "list", now: "list", week: "list" };
     if (RETIRED_VIEWS[state.view]) state.view = RETIRED_VIEWS[state.view];
     const requestedView = new URLSearchParams(window.location.search).get("view");
@@ -474,6 +508,15 @@ async function init() {
     const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
     installButton.hidden = Boolean(standalone);
     renderView();
+
+    if (queueCount() && isConfigured()) {
+      const result = await flush();
+      if (result.ok && result.markdown) {
+        setManager(parseManagerMarkdown(result.markdown));
+        renderView();
+        showToast("Pending changes published.");
+      }
+    }
   } catch (error) {
     viewRoot.innerHTML = `<section class="source-error"><h2>The plan could not load.</h2><p>${escapeHTML(error.message)}</p><p>If you opened <code>index.html</code> directly, start a local web server instead: <code>python3 -m http.server 8080</code>, then open <code>http://localhost:8080</code>.</p><a href="./MANAGER.md">Open MANAGER.md</a></section>`;
   }

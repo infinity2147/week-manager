@@ -1,0 +1,20 @@
+name = "week-manager"
+main = "index.js"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+GITHUB_REPO = "infinity2147/week-manager"
+GITHUB_BRANCH = "main"
+ALLOWED_ORIGIN = "https://infinity2147.github.io"
+
+# Conversation memory. Create with:
+#   npx wrangler kv namespace create MANAGER_KV
+# then paste the printed id below.
+[[kv_namespaces]]
+binding = "MANAGER_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# Secrets are never stored here. Set each with `npx wrangler secret put NAME`:
+#   GEMINI_API_KEY  GROQ_API_KEY  GITHUB_TOKEN
+#   TELEGRAM_BOT_TOKEN  TELEGRAM_CHAT_ID  TELEGRAM_WEBHOOK_SECRET  APP_SECRET

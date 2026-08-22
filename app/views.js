@@ -7,6 +7,7 @@ import {
   formatDate, formatLongDate, dueInfo, statusClass,
 } from "./format.js";
 import { localISODate, managerDate, startOfLocalWeek } from "../lib/manager-data.js";
+import { workerURL, passphrase, isConfigured, queueCount } from "./sync.js";
 
 let applicationFilter = "All";
 
@@ -343,7 +344,29 @@ export function localChangeCount() {
 export function renderInbox() {
   const waiting = section("waiting_for");
   const localItems = [...state.localItems, ...state.inbox.map((item) => ({ ...item, kind: "Note" }))];
-  return `<section class="view">
+  return `
+    <section class="panel sync-panel">
+      <div class="section-heading">
+        <div><span class="eyebrow">Publishing</span><h3>Where your changes go</h3></div>
+        <span class="status-pill ${isConfigured() ? "status-confirmed" : "status-unknown"}">${isConfigured() ? "Connected" : "Not connected"}</span>
+      </div>
+      <p class="quiet-note">${isConfigured()
+        ? `Edits publish to MANAGER.md automatically, so Telegram and every installation see them.${queueCount() ? ` <strong>${queueCount()} change(s) waiting to publish.</strong>` : ""}`
+        : "Add your Worker address and passphrase to publish edits automatically. Until then everything stays in this browser."}</p>
+      <form id="sync-form" class="sync-form">
+        <label class="field"><span>Worker address</span>
+          <input id="sync-url" type="url" placeholder="https://week-manager.YOUR-SUBDOMAIN.workers.dev" value="${escapeHTML(workerURL())}" /></label>
+        <label class="field"><span>Passphrase</span>
+          <input id="sync-secret" type="password" autocomplete="off" placeholder="The APP_SECRET you set" value="${escapeHTML(passphrase())}" /></label>
+        <div class="modal-actions">
+          ${isConfigured() ? `<button class="button button-quiet" type="button" data-sync-forget>Disconnect</button>` : ""}
+          ${queueCount() ? `<button class="button button-quiet" type="button" data-sync-retry>Retry ${queueCount()}</button>` : ""}
+          <span class="modal-action-spacer"></span>
+          <button class="button button-primary" type="submit">Save connection</button>
+        </div>
+      </form>
+    </section>
+<section class="view">
     <div class="page-intro"><div><span class="eyebrow">No manual tables</span><h2>Tell Codex in normal sentences.</h2><p>Open this project folder in Codex, paste a message or email, and ask it to update and publish. The website inbox is only a fallback when Codex is not open.</p></div></div>
     <div class="content-grid">
       <article class="card card-pad span-12">

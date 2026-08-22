@@ -60,61 +60,74 @@ The expected URL is `https://YOUR-USERNAME.github.io/REPOSITORY/`.
 
 > Privacy: a public GitHub repository makes `MANAGER.md` and its personal planning details public. Use a private repository with a GitHub plan that supports private Pages, or keep the app local, if that is not acceptable.
 
-## Telegram bot: reminders and manager updates
+## Telegram bot: reminders and conversation
 
-The bot has two jobs:
+Two jobs, on different infrastructure:
 
-- `Telegram reminders` sends a Markdown-driven digest at approximately **9:00 AM** and **7:00 PM IST** every day.
-- `Telegram manager` checks for a new text or voice note about every five minutes. Voice is transcribed with OpenAI, then a Codex agent reads `AGENTS.md` and the current `MANAGER.md`, makes the appropriate durable update, validates it, publishes it, and replies in Telegram.
+- **Reminders** — a GitHub Actions cron sends a digest at roughly **9:00 AM** and **7:00 PM IST**. Unchanged.
+- **Conversation** — a Cloudflare Worker webhook. Send the bot a text or voice note and it replies in about two seconds. It can add tasks and events, move dates, mark work done, log applications and rejections, and answer questions about your plan. No command syntax; it reads plain language, including Hinglish voice notes.
 
-GitHub may occasionally delay scheduled jobs. This version normally replies within roughly **5–10 minutes**; it is not an instant webhook. Replies are text-only. For a short answer to a clarification, use Telegram's **Reply** action on the bot's question so the next agent run receives that context.
+Because it holds the last day of conversation, follow-ups work: ask *"what academics work is left?"*, then say *"move the second one to Friday"*.
 
-### 1. Create the bot
+### What it costs
 
-1. Open Telegram and message `@BotFather`.
-2. Run `/newbot`, follow its prompts, and copy the bot token somewhere secure.
-3. Open your new bot and send it any message such as `start`.
+Nothing. Gemini 2.5 Flash's free tier is 250 requests/day and 250,000 tokens/minute; Groq's Whisper free tier is 2,000 voice notes/day; Cloudflare Workers' free tier is 100,000 requests/day. None needs a credit card. A heavy personal day uses a few dozen requests.
 
-### 2. Find your chat ID
+### Deploy it
 
-After messaging the bot, open this URL with your token substituted locally:
+**1. Get the two free API keys.** [aistudio.google.com/apikey](https://aistudio.google.com/apikey) for `GEMINI_API_KEY`, [console.groq.com/keys](https://console.groq.com/keys) for `GROQ_API_KEY`.
 
-```text
-https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates
-```
+**2. Make a GitHub token.** Settings → Developer settings → Fine-grained tokens. Scope it to **this repository only**, with **Contents: read and write**. Nothing else.
 
-Find `message.chat.id` in the response. Do not put the token or chat ID in any tracked file.
+**3. Invent a passphrase.** Any long random string. This is `APP_SECRET`, and it is what stops a stranger editing your plan from the public website.
 
-### 3. Add GitHub secrets
-
-In the repository, open **Settings → Secrets and variables → Actions** and add:
-
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_CHAT_ID`
-- `OPENAI_API_KEY`
-
-Create the OpenAI API key in the OpenAI platform dashboard and make sure API billing is enabled. API usage is separate from a ChatGPT or Codex subscription. Never paste this key into Telegram, the repository, or a chat message; save it directly as the GitHub secret.
-
-Then activate the incoming manager:
-
-1. Open **Actions → Telegram manager → Run workflow**.
-2. Choose `reset_backlog` once. This prevents old setup messages from being treated as new planning updates.
-3. Wait for the green check, then send the bot a fresh text such as `Add a task to review my resume tomorrow at 7 PM`.
-4. The scheduled workflow will acknowledge it, let Codex update the manager, and reply with the result and website link.
-
-The agent understands normal language; it is not a fixed command or keyword engine. It can decide that no file change is needed, or ask one concrete question when an important detail is missing. Its automated write access is still limited to `MANAGER.md`, and the same tests used for normal publishing must pass.
-
-To test the outbound digest, open **Actions → Telegram reminders → Run workflow** and choose a morning or evening reminder. The reminder script uses Telegram's HTTPS `sendMessage` Bot API and reads only `MANAGER.md`.
-
-Preview a reminder locally without sending anything:
+**4. Deploy.**
 
 ```bash
-npm run reminder:preview
+cd worker
+npx wrangler login
+npx wrangler kv namespace create MANAGER_KV     # paste the printed id into wrangler.toml
+npx wrangler deploy
 ```
 
-Browser-only check-offs are not visible to the scheduled workflow until you sync them back to `MANAGER.md`.
+**5. Set the secrets.** Each command prompts for the value — nothing is written to the repo.
 
-The Telegram manager updates the Week Manager's own task/event calendar and its `.ics` export. It does not directly write to Google Calendar or Apple Calendar.
+```bash
+npx wrangler secret put GEMINI_API_KEY
+npx wrangler secret put GROQ_API_KEY
+npx wrangler secret put GITHUB_TOKEN
+npx wrangler secret put TELEGRAM_BOT_TOKEN
+npx wrangler secret put TELEGRAM_CHAT_ID
+npx wrangler secret put TELEGRAM_WEBHOOK_SECRET   # invent another random string
+npx wrangler secret put APP_SECRET
+```
+
+**6. Point Telegram at the Worker**, substituting your values:
+
+```bash
+curl -X POST "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook" \
+  -H 'content-type: application/json' \
+  -d '{"url":"https://week-manager.<YOUR-SUBDOMAIN>.workers.dev/telegram","secret_token":"<TELEGRAM_WEBHOOK_SECRET>","allowed_updates":["message"]}'
+```
+
+**7. Connect the website.** Open **Inbox & sync**, paste the Worker address and your `APP_SECRET`, and save. Edits then publish to `MANAGER.md` automatically.
+
+Send the bot something like *"book the flight home on the 26th"* to check it works.
+
+### How it stays safe
+
+- The webhook rejects any request without your secret header, and any message from any chat but yours.
+- The model never writes Markdown. It emits typed operations that are validated before they touch the file, so it cannot invent a column, corrupt a row, or reach any file but `MANAGER.md`.
+- A bad operation in a batch is dropped; the rest still apply.
+- If two edits collide, the Worker re-reads and re-applies rather than overwriting.
+- No key ever reaches the browser. The passphrase only authorises `/apply`.
+
+### If something goes wrong
+
+- **No reply at all** — check the webhook: `curl "https://api.telegram.org/bot<BOT_TOKEN>/getWebhookInfo"`. Then `npx wrangler tail` in `worker/` to watch live logs.
+- **"Free daily quota is used up"** — Gemini's 250/day reset at midnight Pacific.
+- **Website says "Not connected"** — the address or passphrase is wrong. Edits keep working locally and publish once it is fixed.
+- **"N change(s) waiting to publish"** — nothing was lost. Press **Retry**.
 
 ## Calendar export
 
@@ -139,8 +152,10 @@ Telegram should be made reliable first. An Instagram version belongs in a later 
 
 - `MANAGER.md` — human-readable source of truth
 - `index.html`, `styles.css`, `app.js` — static PWA
+- `lib/manager-edit.js` — the only path that writes `MANAGER.md`, shared by the website and the bot
+- `lib/manager-order.js` — urgency bands and manual-order arithmetic
+- `worker/` — the Cloudflare Worker: Telegram webhook, Gemini agent, Groq voice, GitHub commits
 - `scripts/telegram-reminder.mjs` — morning/evening Telegram digest
-- `scripts/telegram-manager.mjs` — secure Telegram intake, voice transcription, and replies
 - `.github/workflows/` — Pages deployment and reminder schedules
 - `AGENTS.md` — future Codex update protocol
 - `.agents/skills/sharpen-intent/` — manual-only project skill supplied by Anant

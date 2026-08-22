@@ -1,5 +1,6 @@
 import { allTasks, allEvents, sourceTasks, section, state, saveState } from "./store.js";
 import { managerDate } from "../lib/manager-data.js";
+import { publish, isConfigured } from "./sync.js";
 
 const FIELD_IDS = {
   name: "editor-name", priority: "editor-priority", area: "editor-area", status: "editor-status",
@@ -122,7 +123,7 @@ export function attachEditor(afterSave) {
   for (const [key, elementId] of Object.entries(FIELD_IDS)) el[key] = document.querySelector(`#${elementId}`);
   const dialog = document.querySelector("#editor-dialog");
 
-  document.querySelector("#editor-form").addEventListener("submit", (event) => {
+  document.querySelector("#editor-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!editing) return;
     const isTask = editing.kind === "tasks";
@@ -140,7 +141,19 @@ export function attachEditor(afterSave) {
 
     saveState({ render: false });
     dialog.close();
-    onSaved("Saved in this app.");
+
+    // A local-only item exists nowhere but this browser, so there is nothing to publish.
+    if (!Object.keys(changed).length || source.local || !isConfigured()) {
+      onSaved(isConfigured() ? "Saved." : "Saved in this app.");
+      return;
+    }
+
+    onSaved("Saved. Publishing…");
+    const operation = isTask
+      ? { op: "updateTask", id: editing.itemId, fields: changed }
+      : { op: "updateEvent", id: editing.itemId, fields: changed };
+    const result = await publish([operation]);
+    onSaved(result.ok ? "Published." : `Saved here. ${result.pending} change(s) still to publish.`);
   });
 
   document.querySelector("#editor-reset").addEventListener("click", () => {
