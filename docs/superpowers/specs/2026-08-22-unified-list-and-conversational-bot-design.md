@@ -272,6 +272,30 @@ question instead of guessing, and adds a `Waiting For` row.
 
 ## Frontend
 
+### Navigation
+
+Eleven sidebar entries become nine. Three collapse into one; nothing else is
+added or removed.
+
+| Tab | Status |
+|---|---|
+| **Everything** | new — replaces Today, Now, and This week; the default view |
+| Completed | unchanged |
+| Prep | unchanged content, gains click-to-edit |
+| Applications | unchanged content, gains click-to-edit |
+| Hackathons | unchanged content, gains click-to-edit |
+| Academics | unchanged content, gains click-to-edit |
+| Travel | unchanged content, gains click-to-edit |
+| Golden Jubilee | unchanged content, gains click-to-edit |
+| Inbox & sync | keeps notes, calendar export, and backup import/export; gains the passphrase field and the unsynced-changes queue; "Copy for Codex" demotes to a fallback |
+
+The mobile bottom bar goes from `Today · Now · Week · Apps · More` to
+`Everything · Completed · Apps · More`, with `More` listing the other six.
+
+`Inbox & sync` ends up serving two purposes — a notes scratchpad and a settings
+panel. It stays merged, because splitting it would add a tenth tab for little
+gain, but that is a reversible call.
+
 ### The unified list
 
 Replaces the `today`, `now`, and `week` views with a single `list` view. The
