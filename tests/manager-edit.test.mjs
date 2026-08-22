@@ -161,3 +161,29 @@ test("applies several operations in order", () => {
   ], { today: TODAY });
   assert.equal(readRows(next, "tasks").at(-1).priority, "P0");
 });
+
+test("refuses a caller-supplied ID that is not a clean slug", () => {
+  for (const bad of ["Weird ID", "has|pipe", "UPPER", "trailing-", "-leading", "under_score", "double--hyphen"]) {
+    assert.throws(
+      () => applyOperations(markdown, [{ op: "addTask", fields: { id: bad, task: "X", next_action: "Y" } }], { today: TODAY }),
+      /ID must be lowercase words separated by hyphens/,
+      `expected ${bad} to be refused`,
+    );
+  }
+});
+
+test("accepts a well-formed caller-supplied ID", () => {
+  const next = applyOperations(markdown, [{ op: "addTask", fields: { id: "book-return-train", task: "X", next_action: "Y" } }], { today: TODAY });
+  assert.equal(readRows(next, "tasks").at(-1).id, "book-return-train");
+});
+
+test("a truncated generated ID is still a clean slug", () => {
+  const generated = slugId(`${"x".repeat(39)} ${"y".repeat(10)}`, new Set());
+  assert.ok(generated.length <= 40, `too long: ${generated}`);
+  assert.match(generated, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, `not a clean slug: ${generated}`);
+  assert.equal(slugId("!!!", new Set()), "item");
+});
+
+test("an operation with no fields object fails with a clear message", () => {
+  assert.throws(() => applyOperations(markdown, [{ op: "addTask" }], { today: TODAY }), /needs a fields object/);
+});
