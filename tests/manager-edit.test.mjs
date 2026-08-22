@@ -378,3 +378,47 @@ test("deleting from a file with no Order section does not create one", () => {
   const deleted = applyOperations(markdown, [{ op: "deleteTask", id: "ml-video" }], { today: TODAY });
   assert.equal(findTable(deleted, "order"), null);
 });
+
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { writeFile, mkdtemp, cp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+const run = promisify(execFile);
+
+async function validate(content) {
+  const directory = await mkdtemp(join(tmpdir(), "manager-"));
+  await cp(new URL("../lib", import.meta.url), join(directory, "lib"), { recursive: true });
+  await cp(new URL("../scripts", import.meta.url), join(directory, "scripts"), { recursive: true });
+  await writeFile(join(directory, "MANAGER.md"), content, "utf8");
+  try {
+    const { stdout } = await run(process.execPath, [join(directory, "scripts/validate-manager.mjs")]);
+    return { ok: true, output: stdout };
+  } catch (error) {
+    return { ok: false, output: `${error.stdout || ""}${error.stderr || ""}` };
+  }
+}
+
+test("a file with no Order section is still valid", async () => {
+  assert.equal((await validate(markdown)).ok, true);
+});
+
+test("a well-formed Order section validates", async () => {
+  const ranked = applyOperations(markdown, [{ op: "setRank", id: "gj-budget", rank: 2.5 }], { today: TODAY });
+  assert.equal((await validate(ranked)).ok, true);
+});
+
+test("a non-numeric rank fails validation", async () => {
+  const broken = markdown.replace("\n## Operating Rules", "\n## Order\n\n| ID | Rank |\n| --- | --- |\n| gj-budget | soon |\n\n## Operating Rules");
+  const result = await validate(broken);
+  assert.equal(result.ok, false);
+  assert.match(result.output, /rank is not a number/);
+});
+
+test("an Order row pointing at nothing fails validation", async () => {
+  const broken = markdown.replace("\n## Operating Rules", "\n## Order\n\n| ID | Rank |\n| --- | --- |\n| ghost | 1 |\n\n## Operating Rules");
+  const result = await validate(broken);
+  assert.equal(result.ok, false);
+  assert.match(result.output, /order\/ghost is not a known task or event/);
+});

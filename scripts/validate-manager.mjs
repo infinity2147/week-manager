@@ -31,6 +31,16 @@ for (const task of data.sections.tasks || []) {
   if (!task.next_action) errors.push(`Task ${task.id} has no next action`);
 }
 
+const orderableIds = new Set([
+  ...(data.sections.tasks || []).map((task) => task.id),
+  ...(data.sections.events || []).map((event) => event.id),
+]);
+
+for (const row of data.sections.order || []) {
+  if (!Number.isFinite(Number(row.rank))) errors.push(`order/${row.id} rank is not a number: ${row.rank}`);
+  if (!orderableIds.has(row.id)) errors.push(`order/${row.id} is not a known task or event`);
+}
+
 if (errors.length) {
   console.error(errors.map((error) => `- ${error}`).join("\n"));
   process.exitCode = 1;
