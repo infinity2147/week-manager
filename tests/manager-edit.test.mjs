@@ -252,3 +252,42 @@ test("every table still round-trips after a batch of writes", () => {
     assert.equal(replaceRows(next, name, readRows(next, name)), next, `${name} did not round-trip`);
   }
 });
+
+test("refuses a new row that has no title and no explicit id", () => {
+  assert.throws(
+    () => applyOperations(markdown, [{ op: "addEvent", fields: { area: "Career" } }], { today: TODAY }),
+    /needs a "event" value/,
+  );
+  assert.throws(
+    () => applyOperations(markdown, [{ op: "addWaitingFor", fields: { area: "Career" } }], { today: TODAY }),
+    /needs a "missing_information" value/,
+  );
+  assert.throws(
+    () => applyOperations(markdown, [{ op: "addTask", fields: { next_action: "Do it" } }], { today: TODAY }),
+    /needs a "task" value/,
+  );
+});
+
+test("recordRejection without an applicationId says so plainly", () => {
+  assert.throws(
+    () => applyOperations(markdown, [{ op: "recordRejection", id: "app-revolut", fields: { company: "Revolut" } }], { today: TODAY }),
+    /recordRejection needs an applicationId/,
+  );
+});
+
+test("the first row written into a previously empty table round-trips", () => {
+  assert.equal(readRows(markdown, "rejections").length, 0, "this test needs rejections to start empty");
+  const next = applyOperations(markdown, [{
+    op: "recordRejection",
+    applicationId: "app-salesforce",
+    fields: {
+      company: "Salesforce", role: "Role not recorded", rejected_on: "2026-08-22", stage: "Application",
+      reason_or_signal: "Portal moved to closed", recovery_action: "Ask for feedback by email", reapply_after: "2027-02-22",
+    },
+  }], { today: TODAY });
+  assert.equal(readRows(next, "rejections").length, 1);
+  assert.equal(readRows(next, "rejections")[0].id, "salesforce");
+  for (const name of SECTIONS) {
+    assert.equal(replaceRows(next, name, readRows(next, name)), next, `${name} did not round-trip`);
+  }
+});
