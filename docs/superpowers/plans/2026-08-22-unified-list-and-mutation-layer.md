@@ -1116,7 +1116,7 @@ for (const row of data.sections.order || []) {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 54 tests
+Expected: PASS, 56 tests
 
 - [ ] **Step 5: Run the full suite**
 
