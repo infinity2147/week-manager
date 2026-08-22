@@ -609,7 +609,7 @@ const APPLY = {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 29 tests
+Expected: PASS, 33 tests
 
 - [ ] **Step 5: Run the full suite**
 
@@ -769,7 +769,7 @@ Add both to `APPLY`:
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 39 tests
+Expected: PASS, 43 tests
 
 - [ ] **Step 5: Commit**
 
@@ -1116,7 +1116,7 @@ for (const row of data.sections.order || []) {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `node --test tests/manager-edit.test.mjs`
-Expected: PASS, 43 tests
+Expected: PASS, 47 tests
 
 - [ ] **Step 5: Run the full suite**
 
