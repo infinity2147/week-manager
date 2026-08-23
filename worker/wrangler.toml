@@ -1,0 +1,24 @@
+name = "week-manager"
+main = "index.js"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+GITHUB_REPO = "infinity2147/week-manager"
+GITHUB_BRANCH = "main"
+# Google retires models periodically; change this rather than the code.
+GEMINI_MODEL = "gemini-3.6-flash"
+ALLOWED_ORIGIN = "https://infinity2147.github.io"
+# Set to "true" to have the bot include the raw error in its reply while debugging.
+DEBUG_ERRORS = "true"
+
+# Conversation memory. Create with:
+#   npx wrangler kv namespace create MANAGER_KV
+# then paste the printed id below.
+[[kv_namespaces]]
+binding = "MANAGER_KV"
+id = "378a5f63ec9740f6bad7d8cc4ca7f47a"
+
+# Secrets are never stored here. Set each with `npx wrangler secret put NAME`:
+#   GEMINI_API_KEY  GROQ_API_KEY  GITHUB_TOKEN
+#   TELEGRAM_BOT_TOKEN  TELEGRAM_CHAT_ID  TELEGRAM_WEBHOOK_SECRET  APP_SECRET

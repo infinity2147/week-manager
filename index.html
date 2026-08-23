@@ -29,14 +29,8 @@
         </div>
 
         <nav class="desktop-nav">
-          <button class="nav-item is-active" type="button" data-nav="today">
-            <span aria-hidden="true">⌂</span><span>Today</span>
-          </button>
-          <button class="nav-item" type="button" data-nav="now">
-            <span aria-hidden="true">→</span><span>Now</span>
-          </button>
-          <button class="nav-item" type="button" data-nav="week">
-            <span aria-hidden="true">▦</span><span>This week</span>
+          <button class="nav-item is-active" type="button" data-nav="list">
+            <span aria-hidden="true">≡</span><span>Everything</span>
           </button>
           <button class="nav-item" type="button" data-nav="completed">
             <span aria-hidden="true">✓</span><span>Completed</span>
@@ -74,7 +68,7 @@
         <header class="topbar">
           <div class="topbar-title">
             <span class="eyebrow" id="week-label">17–23 August</span>
-            <h1 id="view-title">Today</h1>
+            <h1 id="view-title">Everything</h1>
           </div>
           <div class="topbar-actions">
             <button class="button button-quiet install-button" id="install-button" type="button" hidden>
@@ -96,9 +90,8 @@
     </div>
 
     <nav class="mobile-nav" aria-label="Mobile navigation">
-      <button class="mobile-nav-item is-active" type="button" data-nav="today"><span>⌂</span>Today</button>
-      <button class="mobile-nav-item" type="button" data-nav="now"><span>→</span>Now</button>
-      <button class="mobile-nav-item" type="button" data-nav="week"><span>▦</span>Week</button>
+      <button class="mobile-nav-item is-active" type="button" data-nav="list"><span>≡</span>Everything</button>
+      <button class="mobile-nav-item" type="button" data-nav="completed"><span>✓</span>Done</button>
       <button class="mobile-nav-item" type="button" data-nav="career"><span>↗</span>Apps</button>
       <button class="mobile-nav-item" type="button" data-nav="more"><span>•••</span>More</button>
     </nav>
@@ -159,59 +152,62 @@
       </form>
     </dialog>
 
-    <dialog class="modal modal-compact" id="schedule-dialog">
-      <form id="schedule-form">
+    <dialog class="modal" id="editor-dialog">
+      <form id="editor-form">
         <div class="modal-heading">
           <div>
-            <span class="eyebrow">Edit date & time</span>
-            <h2 id="schedule-dialog-title">Change schedule</h2>
-            <p class="schedule-name" id="schedule-name"></p>
+            <span class="eyebrow" id="editor-eyebrow">Edit</span>
+            <h2 id="editor-title">Edit item</h2>
           </div>
           <button class="icon-button" type="button" data-close-dialog aria-label="Close">×</button>
         </div>
 
-        <div class="schedule-fields" id="task-schedule-fields">
-          <div class="field-row">
-            <label class="field">
-              <span>Deadline date</span>
-              <input id="task-due-date" type="date" required />
-            </label>
-            <label class="field">
-              <span>Deadline time <small>optional</small></span>
-              <input id="task-due-time" type="time" />
-            </label>
-          </div>
+        <label class="field"><span>Title</span>
+          <input id="editor-name" required maxlength="160" /></label>
+
+        <div class="field-row" id="editor-task-dates">
+          <label class="field"><span>Deadline date</span><input id="editor-due-date" type="date" /></label>
+          <label class="field"><span>Deadline time <small>optional</small></span><input id="editor-due-time" type="time" /></label>
         </div>
 
-        <div class="schedule-fields" id="event-schedule-fields" hidden>
-          <div class="field-row">
-            <label class="field">
-              <span>Starts on</span>
-              <input id="event-start-date" type="date" required />
-            </label>
-            <label class="field">
-              <span>Start time <small>optional</small></span>
-              <input id="event-start-time" type="time" />
-            </label>
-          </div>
-          <div class="field-row">
-            <label class="field">
-              <span>Ends on</span>
-              <input id="event-end-date" type="date" />
-            </label>
-            <label class="field">
-              <span>End time <small>optional</small></span>
-              <input id="event-end-time" type="time" />
-            </label>
-          </div>
+        <div class="field-row" id="editor-event-start" hidden>
+          <label class="field"><span>Starts on</span><input id="editor-start-date" type="date" /></label>
+          <label class="field"><span>Start time <small>optional</small></span><input id="editor-start-time" type="time" /></label>
+        </div>
+        <div class="field-row" id="editor-event-end" hidden>
+          <label class="field"><span>Ends on</span><input id="editor-end-date" type="date" /></label>
+          <label class="field"><span>End time <small>optional</small></span><input id="editor-end-time" type="time" /></label>
         </div>
 
-        <p class="quiet-note">Leaving time blank makes it an all-day date. This edit is saved in the current browser or Dock app.</p>
-        <div class="modal-actions schedule-actions">
-          <button class="button button-quiet" id="reset-schedule-button" type="button">Use published schedule</button>
+        <div class="field-row">
+          <label class="field" id="editor-priority-field"><span>Priority</span>
+            <select id="editor-priority"><option>P0</option><option>P1</option><option>P2</option></select></label>
+          <label class="field"><span>Area</span>
+            <select id="editor-area">
+              <option>Career</option><option>Hackathon</option><option>Prep</option>
+              <option>Academics</option><option>Travel</option><option>Golden Jubilee</option>
+              <option>Project</option><option>Skill</option><option>Planning</option><option>Personal</option>
+            </select></label>
+        </div>
+
+        <div class="field-row">
+          <label class="field"><span>Status</span><input id="editor-status" maxlength="40" /></label>
+          <label class="field" id="editor-location-field" hidden><span>Location</span><input id="editor-location" maxlength="200" /></label>
+        </div>
+
+        <label class="field" id="editor-next-field"><span>Next action</span>
+          <input id="editor-next" maxlength="200" /></label>
+        <label class="field"><span>Link <small>https only</small></span>
+          <input id="editor-link" type="url" pattern="https://.*" maxlength="300" /></label>
+        <label class="field"><span>Notes</span>
+          <textarea id="editor-notes" rows="3" maxlength="400"></textarea></label>
+
+        <div class="modal-actions editor-actions">
+          <button class="button button-quiet button-danger" id="editor-delete" type="button">Delete</button>
+          <button class="button button-quiet" id="editor-reset" type="button">Use published values</button>
           <span class="modal-action-spacer"></span>
           <button class="button button-quiet" type="button" data-close-dialog>Cancel</button>
-          <button class="button button-primary" type="submit">Save date & time</button>
+          <button class="button button-primary" type="submit">Save</button>
         </div>
       </form>
     </dialog>
