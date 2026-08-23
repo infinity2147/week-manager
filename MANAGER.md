@@ -2,7 +2,7 @@
 
 This file is the durable source of truth. Tell Codex or the Telegram manager what changed in plain language; the agent should update and publish this file, while quick check-offs made on the website stay on that browser until exported. Golden Jubilee is a distinct area where Anant is the overall coordinator; it must not be grouped with Travel.
 
-- Updated: 2026-08-18
+- Updated: 2026-08-24
 - Timezone: Asia/Kolkata
 - Current week: 2026-08-17 to 2026-08-23
 - Application goal: 25
@@ -42,6 +42,7 @@ This file is the durable source of truth. Tell Codex or the Telegram manager wha
 | vng-calendar | Add the VNG course calendar and presentation date | Academics | 2026-08-20T19:00:00+05:30 | P2 | Open | 10m | Share the calendar or date with Codex |  | Presentation date is not known yet |
 | et-rehearse | Rehearse ET AI pitch and Q&A twice | Hackathon | 2026-08-24T18:00:00+05:30 | P0 | Open | 2h | Time one solo run and one hostile Q&A run |  | Presentation 7–8 minutes; Q&A 7–8 minutes |
 | et-pack | Pack the ET AI finale kit | Travel | 2026-08-24T20:00:00+05:30 | P0 | Open | 20m | Pack laptop, charger, ID/Aadhaar, adapters, deck PDF, and demo backup |  | Registration begins at 8:00 AM |
+| prepare-for-arc180-fellows-interview | Prepare for Arc180 Fellows interview | Career | 2026-08-27T20:00:00+05:30 | P1 | Open | 1h | Review Arc180 program details and draft key speaking points |  | Assumed preparation deadline prior to 28 Aug 8:00 AM IST interview |
 
 ## Events
 
@@ -54,6 +55,7 @@ This file is the durable source of truth. Tell Codex or the Telegram manager wha
 | go-home | Travel home after ET AI | Travel | 2026-08-26 | 2026-08-26 | Tentative | Destination not recorded |  | Could be a safely timed late flight on 25 Aug after checking transit time |
 | ides-finale | IDES 2.0 Finale | Hackathon | Date not announced | Date not announced | Finalist | Location not announced |  | Update when organizers announce details |
 | goa-hacker-house | Hacker House Goa 2026 | Hackathon | 2026-10-28 | 2026-10-31 | Interested | Goa, India | https://hacker-house-goa-2026.devfolio.co/overview?ref=f66c3dc86d | Offline AI × Crypto builder residency; team size 1–3 |
+| arc180-fellows-summer-2027-interview | Arc180 Fellows Summer 2027 Interview | Career | 2026-08-28T08:00:00+05:30 | 2026-08-28T08:30:00+05:30 | Confirmed | https://us06web.zoom.us/j/87384921967?pwd=2PwU3RGHr4w0i52jia6bzV89QmAq6U.1 | https://us06web.zoom.us/j/87384921967?pwd=2PwU3RGHr4w0i52jia6bzV89QmAq6U.1 | Meeting ID: 873 849 21967, Passcode: 605740 |
 
 ## Applications
 
@@ -63,6 +65,7 @@ This file is the durable source of truth. Tell Codex or the Telegram manager wha
 | app-salesforce | Salesforce | Role not recorded | Applied | Date not recorded | Add role/link and check portal or email | 2026-08-24 |  | Existing application |
 | app-revolut | Revolut | Role not recorded | Applied | Date not recorded | Add role/link and check portal or email | 2026-08-24 |  | Existing application |
 | app-akuna | Akuna Capital | 2027 quantitative role pipeline | Challenge | Date not recorded | Complete Virtual Quantitative Trading Challenge | 2026-08-22 |  | Top performers may enter an expedited process; invitation is discretionary |
+| arc180 | Arc180 | Fellows Program Summer 2027 | Interview | 2026-08-24 | Prepare for interview on 28 Aug 8:00 AM IST | 2026-08-28 | https://us06web.zoom.us/j/87384921967?pwd=2PwU3RGHr4w0i52jia6bzV89QmAq6U.1 | Arc180 Fellows Program Summer 2027 |
 
 ## Rejections
 
