@@ -13,16 +13,10 @@ This file is the durable source of truth. Tell Codex or the Telegram manager wha
 
 | ID | Task | Area | Due | Priority | Status | Estimate | Next action | Link | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| et-confirm | Verify ET AI finale attendance form was submitted | Hackathon | 2026-08-17T21:00:00+05:30 | P0 | Open | 10m | Check the submitted response or email the organizers immediately | https://forms.gle/w2GXNCBzozj6M7bM9 | Form deadline was 13 Aug; ignore only if already submitted |
 | akuna-invite | Verify HackerRank invite and challenge access | Career | 2026-08-17T21:30:00+05:30 | P0 | Open | 15m | Check inbox and spam; save the challenge link |  | Do not copy confidential challenge content into this manager |
-| et-travel-in | Arrange travel to Hyderabad before ET AI registration | Travel | 2026-08-18T18:00:00+05:30 | P0 | Open | 30m | Choose arrival plan that reaches T-Hub before 8:00 AM on 25 Aug | https://maps.app.goo.gl/GjcMYQZLDWiXi24eA | Departure city is not recorded yet |
-| et-stay | Decide whether Hyderabad accommodation is needed | Travel | 2026-08-18T18:30:00+05:30 | P0 | Open | 20m | Book a stay for 24 Aug if same-day arrival is unsafe |  | Organizers do not cover travel or accommodation |
-| home-route | Confirm home destination and return airport | Travel | 2026-08-18T19:00:00+05:30 | P0 | Open | 10m | Record destination, baggage, and preferred return date |  | Needed before booking the post-finale flight |
-| home-flight | Book the flight home after ET AI | Travel | 2026-08-19T20:00:00+05:30 | P0 | Open | 30m | Prefer a safely timed late flight or 26 Aug morning after checking airport travel time |  | Finale is expected to end around 6:00 PM on 25 Aug |
 | akuna-prep | Review Akuna overview, instructional video, and prep tips | Career | 2026-08-18T20:30:00+05:30 | P0 | Open | 1h | Read the supplied prep document and block challenge time |  | AI is allowed; all other work must remain individual |
 | resume-master | Create a reusable master resume | Career | 2026-08-19T16:00:00+05:30 | P0 | Open | 1h 30m | Collect education, projects, research, achievements, and quantified impact into one source document |  | Personal sequencing deadline; feeds the ML research resume |
 | resume-external | Finish the ML research resume for external applications | Career | 2026-08-19T18:00:00+05:30 | P0 | Open | 2h | Make one strong base resume, then tailor only the top third |  | Unblocks the weekly application target |
-| et-deck-v1 | Complete ET AI finale deck version 1 | Hackathon | 2026-08-20T21:00:00+05:30 | P0 | Open | 3h | Build a 7–8 minute story with problem, solution, evidence, demo, and close |  | Keep backup PDF and offline copy |
 | goa-apply | Apply to Hacker House Goa 2026 | Hackathon | 2026-08-20T21:30:00+05:30 | P1 | Open | 45m | Submit the Devfolio application and capture any shortlisting task | https://hacker-house-goa-2026.devfolio.co/overview?ref=f66c3dc86d | Personal deadline; official exact close time is not published on the page |
 | gj-budget | Draft Golden Jubilee budget | Golden Jubilee | 2026-08-20T22:00:00+05:30 | P1 | Open | 1h | List line items, owners, estimates, and approval gaps |  | Overall coordinator task |
 | pocket-fm-prep | Focused preparation for Pocket FM | Career | 2026-08-21T18:00:00+05:30 | P1 | Open | 2h | Record the stage/date, then prepare only for that format |  | Interview details are still missing |
@@ -30,7 +24,6 @@ This file is the durable source of truth. Tell Codex or the Telegram manager wha
 | gj-atm | Close the Golden Jubilee ATM action | Golden Jubilee | 2026-08-21T21:00:00+05:30 | P1 | Open | 45m | Record the required decision and contact the owner |  | Overall coordinator; exact scope needs to be added |
 | ml-video | Watch and note the ML video | Academics | 2026-08-21T22:00:00+05:30 | P2 | Done | 45m | Capture three useful points and one follow-up |  | From the original task list |
 | akuna-challenge | Complete and submit the Akuna trading challenge | Career | 2026-08-22T20:00:00+05:30 | P0 | Open | 5–8h | Protect one uninterrupted block and submit well before the hard cutoff |  | Self-imposed finish; hard cutoff is 24 Aug 10:29 AM IST |
-| et-demo-check | Make the ET AI demo failure-safe | Hackathon | 2026-08-22T21:00:00+05:30 | P0 | Open | 2h | Test offline path, backup recording, adapters, and clean laptop setup |  | Bring any additional demonstration materials |
 | stochastic-catchup | Catch up on stochastic and probability material | Academics | 2026-08-22T22:00:00+05:30 | P1 | Open | 2h | Review lecture notes and make a one-page quiz sheet |  | Preparation for the Monday quiz |
 | gj-truth-doc | Finish Golden Jubilee truth document and follow-up | Golden Jubilee | 2026-08-22T22:30:00+05:30 | P1 | Open | 1h | Consolidate facts, open decisions, owners, and follow-ups |  | Overall coordinator task |
 | dl-video | Watch and note the DL video | Academics | 2026-08-22T23:00:00+05:30 | P2 | Open | 45m | Capture three useful points and one follow-up |  | From the original task list |
@@ -40,8 +33,6 @@ This file is the durable source of truth. Tell Codex or the Telegram manager wha
 | stats-video | Watch and note the Stats video | Academics | 2026-08-23T22:00:00+05:30 | P2 | Open | 45m | Connect notes to Monday quiz preparation |  | From the original task list |
 | simulation-details | Capture the Simulation Challenge deadline and next step | Project | 2026-08-19T21:00:00+05:30 | P2 | Open | 15m | Add its link, deadline, team, and required deliverable |  | Details are missing |
 | vng-calendar | Add the VNG course calendar and presentation date | Academics | 2026-08-20T19:00:00+05:30 | P2 | Open | 10m | Share the calendar or date with Codex |  | Presentation date is not known yet |
-| et-rehearse | Rehearse ET AI pitch and Q&A twice | Hackathon | 2026-08-24T18:00:00+05:30 | P0 | Open | 2h | Time one solo run and one hostile Q&A run |  | Presentation 7–8 minutes; Q&A 7–8 minutes |
-| et-pack | Pack the ET AI finale kit | Travel | 2026-08-24T20:00:00+05:30 | P0 | Open | 20m | Pack laptop, charger, ID/Aadhaar, adapters, deck PDF, and demo backup |  | Registration begins at 8:00 AM |
 | prepare-for-arc180-fellows-interview | Prepare for Arc180 Fellows interview | Career | 2026-08-27T20:00:00+05:30 | P1 | Open | 1h | Review Arc180 program details and draft key speaking points |  | Assumed preparation deadline prior to 28 Aug 8:00 AM IST interview |
 
 ## Events
@@ -51,9 +42,6 @@ This file is the durable source of truth. Tell Codex or the Telegram manager wha
 | akuna-close | Akuna Virtual Quantitative Trading Challenge closes | Career | 2026-08-24T10:29:00+05:30 | 2026-08-24T10:29:00+05:30 | Confirmed | Online via HackerRank |  | Converted from 23 Aug 2026, 11:59 PM CDT; no extensions |
 | rl-slp-aug24 | Reinforcement Learning SLP presentation | Academics | 2026-08-24 | 2026-08-24 | Recurring | Course venue not recorded |  | Every Monday; exact time needed |
 | stochastic-quiz-aug24 | Stochastic and Probability quiz | Academics | 2026-08-24 | 2026-08-24 | Recurring | Course venue not recorded |  | Every Monday; exact time needed |
-| et-ai-finale | ET AI Hackathon 2.0 Finale | Hackathon | 2026-08-25T08:00:00+05:30 | 2026-08-25T18:00:00+05:30 | Confirmed | The Marvel, 5th Floor, T-Hub Foundation, Plot 1/C, Raidurgam Panmaktha, Hyderabad 500081 | https://maps.app.goo.gl/GjcMYQZLDWiXi24eA | Offline; refreshments and lunch provided; travel and stay are self-funded |
-| go-home | Travel home after ET AI | Travel | 2026-08-26 | 2026-08-26 | Tentative | Destination not recorded |  | Could be a safely timed late flight on 25 Aug after checking transit time |
-| ides-finale | IDES 2.0 Finale | Hackathon | Date not announced | Date not announced | Finalist | Location not announced |  | Update when organizers announce details |
 | goa-hacker-house | Hacker House Goa 2026 | Hackathon | 2026-10-28 | 2026-10-31 | Interested | Goa, India | https://hacker-house-goa-2026.devfolio.co/overview?ref=f66c3dc86d | Offline AI × Crypto builder residency; team size 1–3 |
 | arc180-fellows-summer-2027-interview | Arc180 Fellows Summer 2027 Interview | Career | 2026-08-28T08:00:00+05:30 | 2026-08-28T08:30:00+05:30 | Confirmed | https://us06web.zoom.us/j/87384921967?pwd=2PwU3RGHr4w0i52jia6bzV89QmAq6U.1 | https://us06web.zoom.us/j/87384921967?pwd=2PwU3RGHr4w0i52jia6bzV89QmAq6U.1 | Meeting ID: 873 849 21967, Passcode: 605740 |
 
