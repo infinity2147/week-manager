@@ -121,7 +121,7 @@ async function processMessage(env, message) {
 
   let result;
   try {
-    result = await runAgent({ apiKey: env.GEMINI_API_KEY, markdown, history, message: prompt, today: when });
+    result = await runAgent({ apiKey: env.GEMINI_API_KEY, model: env.GEMINI_MODEL, markdown, history, message: prompt, today: when });
   } catch (error) {
     console.error("agent failed:", error?.stack || error?.message || error);
     const detail = env.DEBUG_ERRORS === "true" && error?.message ? `\n\n${error.message}` : "";

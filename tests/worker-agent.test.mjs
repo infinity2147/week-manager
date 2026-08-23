@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { TOOLS, toolNames, toolToOperation, READ_ONLY_TOOLS } from "../worker/tools.js";
-import { runAgent, listItems, buildSystemPrompt, trimHistory, SYSTEM_RULES } from "../worker/agent.js";
+import { runAgent, listItems, buildSystemPrompt, trimHistory, SYSTEM_RULES, DEFAULT_MODEL } from "../worker/agent.js";
 import { applyValidated } from "../worker/index.js";
 import { commitWithRetry } from "../worker/github.js";
 import { OPERATIONS, readRows } from "../lib/manager-edit.js";
@@ -192,4 +192,26 @@ test("the rules the bot must not break are all present", () => {
   for (const rule of [/Never invent/, /Asia\/Kolkata/, /Golden Jubilee/, /Akuna/, /reapply date/, /next_action/]) {
     assert.match(SYSTEM_RULES, rule);
   }
+});
+
+test("the model is configurable and defaults to a current one", async () => {
+  const { fetchImpl, calls } = fakeGemini([[{ text: "ok" }]]);
+  await runAgent({ apiKey: "k", markdown, message: "hi", today: TODAY, fetchImpl });
+  assert.ok(calls[0].url.includes(DEFAULT_MODEL), `default model missing from ${calls[0].url}`);
+
+  const other = fakeGemini([[{ text: "ok" }]]);
+  await runAgent({ apiKey: "k", model: "gemini-9-turbo", markdown, message: "hi", today: TODAY, fetchImpl: other.fetchImpl });
+  assert.ok(other.calls[0].url.includes("gemini-9-turbo"), "an explicit model must win");
+});
+
+test("a retired model produces an error naming its replacement", async () => {
+  const fetchImpl = async () => ({
+    ok: false,
+    status: 404,
+    text: async () => JSON.stringify({ error: { message: "This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.6-flash" } }),
+  });
+  await assert.rejects(
+    () => runAgent({ apiKey: "k", model: "gemini-2.5-flash", markdown, message: "hi", today: TODAY, fetchImpl }),
+    (error) => /has been retired/.test(error.message) && /gemini-3\.6-flash/.test(error.message) && /GEMINI_MODEL/.test(error.message),
+  );
 });

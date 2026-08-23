@@ -6,6 +6,8 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 GITHUB_REPO = "infinity2147/week-manager"
 GITHUB_BRANCH = "main"
+# Google retires models periodically; change this rather than the code.
+GEMINI_MODEL = "gemini-3.6-flash"
 ALLOWED_ORIGIN = "https://infinity2147.github.io"
 # Set to "true" to have the bot include the raw error in its reply while debugging.
 DEBUG_ERRORS = "true"

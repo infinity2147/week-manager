@@ -1,7 +1,7 @@
 import { parseManagerMarkdown } from "../lib/manager-data.js";
 import { TOOLS, READ_ONLY_TOOLS, toolToOperation } from "./tools.js";
 
-const MODEL = "gemini-2.5-flash";
+export const DEFAULT_MODEL = "gemini-3.6-flash";
 const ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 const MAX_ROUNDS = 5;
 
@@ -54,8 +54,8 @@ function partsFromResponse(body) {
   return body?.candidates?.[0]?.content?.parts || [];
 }
 
-async function callGemini({ apiKey, systemPrompt, contents, fetchImpl }) {
-  const response = await fetchImpl(`${ENDPOINT}/${MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+async function callGemini({ apiKey, model, systemPrompt, contents, fetchImpl }) {
+  const response = await fetchImpl(`${ENDPOINT}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -73,6 +73,9 @@ async function callGemini({ apiKey, systemPrompt, contents, fetchImpl }) {
   }
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
+    if (response.status === 404 && detail.includes("no longer available")) {
+      throw new Error(`The model ${model} has been retired. Set GEMINI_MODEL in worker/wrangler.toml to the one Google names here: ${detail.slice(0, 200)}`);
+    }
     throw new Error(`Gemini request failed: ${response.status} ${detail.slice(0, 200)}`);
   }
   return response.json();
@@ -83,13 +86,13 @@ async function callGemini({ apiKey, systemPrompt, contents, fetchImpl }) {
  * asked for — applying them is the caller's job, so a failed commit never
  * leaves the conversation claiming success.
  */
-export async function runAgent({ apiKey, markdown, history = [], message, today, fetchImpl = fetch }) {
+export async function runAgent({ apiKey, model = DEFAULT_MODEL, markdown, history = [], message, today, fetchImpl = fetch }) {
   const systemPrompt = buildSystemPrompt({ markdown, today });
   const contents = [...history, { role: "user", parts: [{ text: message }] }];
   const operations = [];
 
   for (let round = 0; round < MAX_ROUNDS; round += 1) {
-    const body = await callGemini({ apiKey, systemPrompt, contents, fetchImpl });
+    const body = await callGemini({ apiKey, model, systemPrompt, contents, fetchImpl });
     const parts = partsFromResponse(body);
     const calls = parts.filter((part) => part.functionCall).map((part) => part.functionCall);
 
