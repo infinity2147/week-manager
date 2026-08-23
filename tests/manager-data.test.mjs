@@ -9,10 +9,12 @@ const manager = parseManagerMarkdown(markdown);
 
 test("parses manager metadata and all core tables", () => {
   assert.equal(manager.metadata.timezone, "Asia/Kolkata");
+  // Counts are deliberately relative: the bot edits MANAGER.md, and an exact
+  // count here would fail the build every time it adds a row.
   assert.ok(manager.sections.tasks.length >= 20);
-  assert.equal(manager.sections.applications.length, 4);
-  assert.equal(manager.sections.hackathons.length, 3);
-  assert.equal(manager.sections.interview_and_ml_prep.length, 8);
+  assert.ok(manager.sections.applications.length >= 4);
+  assert.ok(manager.sections.hackathons.length >= 3);
+  assert.ok(manager.sections.interview_and_ml_prep.length >= 8);
 });
 
 test("keeps empty Rejections table as an empty section", () => {

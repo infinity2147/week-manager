@@ -22,7 +22,7 @@ test("returns null for a section that has no table", () => {
 
 test("reads rows with slugified keys", () => {
   const rows = readRows(markdown, "tasks");
-  assert.equal(rows.length, 29);
+  assert.ok(rows.length >= 29, `expected at least 29 task rows, found ${rows.length}`);
   assert.equal(rows[0].id, "et-confirm");
   assert.equal(rows[0].priority, "P0");
   assert.equal(rows[0].link, "https://forms.gle/w2GXNCBzozj6M7bM9");
@@ -93,7 +93,7 @@ test("adds a task and generates a slug ID", () => {
     fields: { task: "Book the return train", area: "Travel", due: "2026-08-27", priority: "P1", status: "Open", next_action: "Check IRCTC" },
   }], { today: TODAY });
   const rows = readRows(next, "tasks");
-  assert.equal(rows.length, 30);
+  assert.equal(rows.length, readRows(markdown, "tasks").length + 1, "adding a task must add exactly one row");
   const added = rows.at(-1);
   assert.equal(added.id, "book-the-return-train");
   assert.equal(added.area, "Travel");
@@ -144,7 +144,7 @@ test("completes and reopens a task", () => {
 
 test("deletes a task", () => {
   const next = applyOperations(markdown, [{ op: "deleteTask", id: "ml-video" }], { today: TODAY });
-  assert.equal(readRows(next, "tasks").length, 28);
+  assert.equal(readRows(next, "tasks").length, readRows(markdown, "tasks").length - 1, "deleting a task must remove exactly one row");
   assert.ok(!readRows(next, "tasks").some((t) => t.id === "ml-video"));
 });
 
