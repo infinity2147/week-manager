@@ -123,7 +123,14 @@ async function processMessage(env, message) {
   try {
     result = await runAgent({ apiKey: env.GEMINI_API_KEY, markdown, history, message: prompt, today: when });
   } catch (error) {
-    await reply(env, chatId, error.rateLimited ? error.message : "Something went wrong reading your plan. Nothing was changed — could you send that again?", replyTo);
+    console.error("agent failed:", error?.stack || error?.message || error);
+    const detail = env.DEBUG_ERRORS === "true" && error?.message ? `\n\n${error.message}` : "";
+    await reply(
+      env,
+      chatId,
+      error.rateLimited ? error.message : `Something went wrong reading your plan. Nothing was changed — could you send that again?${detail}`,
+      replyTo,
+    );
     return;
   }
 
@@ -141,6 +148,7 @@ async function processMessage(env, message) {
       );
       if (summary.changed) note += `\n\nSaved. The website will show it after a refresh.`;
     } catch (error) {
+      console.error("commit failed:", error?.stack || error?.message || error);
       note = `\n\nI could not save that, so nothing changed. ${error.conflict ? "Something else edited the plan at the same time — try once more." : "Please try again."}`;
     }
   }
@@ -206,7 +214,9 @@ export default {
       const outcome = await handleTelegram(request, env);
       if (outcome instanceof Response) return outcome;
       // Answer Telegram immediately; the model call takes far longer than its retry window.
-      ctx.waitUntil(processMessage(env, outcome.message).catch(() => {}));
+      ctx.waitUntil(processMessage(env, outcome.message).catch((error) => {
+        console.error("processMessage failed:", error?.stack || error?.message || error);
+      }));
       return new Response("ok");
     }
 
