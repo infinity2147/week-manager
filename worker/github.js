@@ -44,7 +44,15 @@ export function createGitHub({ token, repo, branch = "main", path = "MANAGER.md"
       error.conflict = true;
       throw error;
     }
-    if (!response.ok) throw new Error(`Could not write ${path}: ${response.status}`);
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "");
+      if (response.status === 403 || response.status === 404) {
+        throw new Error(
+          `GitHub refused the write (${response.status}). The token usually needs "Contents: Read and write" on ${repo}. ${detail.slice(0, 160)}`,
+        );
+      }
+      throw new Error(`Could not write ${path}: ${response.status} ${detail.slice(0, 160)}`);
+    }
     const body = await response.json();
     return { sha: body.content.sha };
   }

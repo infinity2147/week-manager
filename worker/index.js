@@ -149,7 +149,8 @@ async function processMessage(env, message) {
       if (summary.changed) note += `\n\nSaved. The website will show it after a refresh.`;
     } catch (error) {
       console.error("commit failed:", error?.stack || error?.message || error);
-      note = `\n\nI could not save that, so nothing changed. ${error.conflict ? "Something else edited the plan at the same time — try once more." : "Please try again."}`;
+      const detail = env.DEBUG_ERRORS === "true" && error?.message ? `\n\n${error.message}` : "";
+      note = `\n\nI could not save that, so nothing changed. ${error.conflict ? "Something else edited the plan at the same time — try once more." : "Please try again."}${detail}`;
     }
   }
 
