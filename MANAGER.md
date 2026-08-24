@@ -13,8 +13,8 @@ This file is the durable source of truth. Tell Codex or the Telegram manager wha
 
 | ID | Task | Area | Due | Priority | Status | Estimate | Next action | Link | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| akuna-invite | Verify HackerRank invite and challenge access | Career | 2026-08-17T21:30:00+05:30 | P0 | Open | 15m | Check inbox and spam; save the challenge link |  | Do not copy confidential challenge content into this manager |
-| akuna-prep | Review Akuna overview, instructional video, and prep tips | Career | 2026-08-18T20:30:00+05:30 | P0 | Open | 1h | Read the supplied prep document and block challenge time |  | AI is allowed; all other work must remain individual |
+| akuna-invite | Verify HackerRank invite and challenge access | Career | 2026-08-17T21:30:00+05:30 | P0 | Done | 15m | Check inbox and spam; save the challenge link |  | Do not copy confidential challenge content into this manager |
+| akuna-prep | Review Akuna overview, instructional video, and prep tips | Career | 2026-08-18T20:30:00+05:30 | P0 | Done | 1h | Read the supplied prep document and block challenge time |  | AI is allowed; all other work must remain individual |
 | resume-master | Create a reusable master resume | Career | 2026-08-19T16:00:00+05:30 | P0 | Open | 1h 30m | Collect education, projects, research, achievements, and quantified impact into one source document |  | Personal sequencing deadline; feeds the ML research resume |
 | resume-external | Finish the ML research resume for external applications | Career | 2026-08-19T18:00:00+05:30 | P0 | Open | 2h | Make one strong base resume, then tailor only the top third |  | Unblocks the weekly application target |
 | goa-apply | Apply to Hacker House Goa 2026 | Hackathon | 2026-08-20T21:30:00+05:30 | P1 | Open | 45m | Submit the Devfolio application and capture any shortlisting task | https://hacker-house-goa-2026.devfolio.co/overview?ref=f66c3dc86d | Personal deadline; official exact close time is not published on the page |
@@ -51,7 +51,7 @@ This file is the durable source of truth. Tell Codex or the Telegram manager wha
 | app-databricks | Databricks | Role not recorded | Applied | Date not recorded | Add role/link and check portal or email | 2026-08-24 |  | Existing application |
 | app-salesforce | Salesforce | Role not recorded | Applied | Date not recorded | Add role/link and check portal or email | 2026-08-24 |  | Existing application |
 | app-revolut | Revolut | Role not recorded | Applied | Date not recorded | Add role/link and check portal or email | 2026-08-24 |  | Existing application |
-| app-akuna | Akuna Capital | 2027 quantitative role pipeline | Challenge | Date not recorded | Complete Virtual Quantitative Trading Challenge | 2026-08-22 |  | Top performers may enter an expedited process; invitation is discretionary |
+| app-akuna | Akuna Capital | 2027 quantitative role pipeline | Challenge | Date not recorded | Await challenge results and recruiter update | 2026-08-22 |  | Virtual Quantitative Trading Challenge completed and submitted on 2026-08-24 |
 | arc180 | Arc180 | Fellows Program Summer 2027 | Interview | 2026-08-24 | Prepare for interview on 28 Aug 8:00 AM IST | 2026-08-28 | https://us06web.zoom.us/j/87384921967?pwd=2PwU3RGHr4w0i52jia6bzV89QmAq6U.1 | Arc180 Fellows Program Summer 2027 |
 
 ## Rejections
